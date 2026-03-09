@@ -4,6 +4,7 @@ import MonitorPage from '../pages/MonitorPage.vue';
 import DataPage from '../pages/DataPage.vue';
 import WarningPage from '../pages/WarningPage.vue';
 import KnowledgePage from '../pages/KnowledgePage.vue';
+import ProfilePage from '../pages/ProfilePage.vue';
 
 const routes = [
   {
@@ -34,6 +35,11 @@ const routes = [
     path: '/knowledge',
     name: 'Knowledge',
     component: KnowledgePage
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: ProfilePage
   }
 ];
 
