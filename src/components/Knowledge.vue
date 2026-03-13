@@ -16,9 +16,12 @@
                 >
                   <template #prefix><i class="fas fa-search"></i></template>
                 </el-input>
-                <el-button type="primary" size="small" @click="addKnowledge"
-                  ><i class="fas fa-plus"></i> 新增知识</el-button
-                >
+                <el-button type="success" size="small" @click="syncOfficialData" :loading="syncing">
+                  <i class="fas fa-sync"></i> 同步官方数据
+                </el-button>
+                <el-button type="primary" size="small" @click="addKnowledge">
+                  <i class="fas fa-plus"></i> 新增知识
+                </el-button>
               </div>
             </div>
           </template>
@@ -78,9 +81,11 @@ import { inject } from "vue";
 
 const knowledgeList = inject("knowledgeList");
 const searchKeyword = inject("searchKeyword");
-const searchKnowledge = inject("searchKnowledge");
+const searchKnowledge = inject("searchKeyword");
 const addKnowledge = inject("addKnowledge");
 const viewKnowledge = inject("viewKnowledge");
+const syncOfficialData = inject("syncOfficialData");
+const syncing = inject("syncing");
 </script>
 
 <style scoped></style>

@@ -26,6 +26,7 @@ import Monitor from "./components/Monitor.vue";
 import Data from "./components/Data.vue";
 import Warning from "./components/Warning.vue";
 import Knowledge from "./components/Knowledge.vue";
+import Profile from "./components/Profile.vue";
 const activeIndex = ref("dashboard");
 const username = ref("用户");
 const dateRange = ref([]);
@@ -359,14 +360,72 @@ const knowledgeList = ref([
 ]);
 
 const totalWarnings = ref(warningList.value.length);
+const syncing = ref(false);
+const syncOfficialData = () => {
+  syncing.value = true;
+  ElMessage.info("正在请求农业农村部官方防疫文件库...");
+  setTimeout(() => {
+    const newData = [
+      {
+        id: 7,
+        title: "2026年春季动物疫病防控",
+        type: "disease",
+        description: "农业农村部发布的关于2026年春季重大动物疫病防控工作的通知及技术方案。",
+        date: "2026-03-01",
+        views: 1050,
+        content: "<h3>2026年春季重大动物疫病防控技术指南</h3><p>官方最新指导文件内容...</p>"
+      },
+      {
+        id: 8,
+        title: "生猪标准化养殖技术规范",
+        type: "technology",
+        description: "国家标准GB/T最新修订版，涵盖场址选择、建设规范、饲养管理等全流程。",
+        date: "2026-02-15",
+        views: 890,
+        content: "<h3>生猪标准化养殖技术规范 (2026版)</h3><p>最新国家标准详细条款...</p>"
+      }
+    ];
+    // 避免重复添加
+    newData.forEach(item => {
+      if (!knowledgeList.value.find(k => k.id === item.id)) {
+        knowledgeList.value.unshift(item);
+      }
+    });
+    syncing.value = false;
+    ElMessage.success("成功获取并同步 2 条官方最新防疫文件");
+  }, 2000);
+};
 
 const aiAnalysisResult = ref(null);
 const aiLoading = ref(false);
 const fetchAIAnalysis = () => {
   aiLoading.value = true;
   setTimeout(() => {
-    aiAnalysisResult.value =
-      "<div><h4>2025年AI分析报告</h4><p>呼吸道疾病同比下降12%...</p></div>";
+    aiAnalysisResult.value = `
+      <div class="ai-report">
+        <div class="ai-report-header">
+          <h4 style="color: #2e7d32; margin-top: 0;"><i class="fas fa-microchip"></i> 智栏 AI 深度数据洞察报告 (2025)</h4>
+          <p style="font-size: 12px; color: #999;">分析引擎：Sentinel-AI v4.2 | 分析时间：${new Date().toLocaleString()}</p>
+        </div>
+        <el-divider></el-divider>
+        <div class="ai-report-section">
+          <h5 style="color: #e6a23c;"><i class="fas fa-bullseye"></i> 最直观影响分析</h5>
+          <p>根据近一年的数据追踪，<strong>呼吸道感染</strong>在春季（3-4月）呈现明显的季节性爆发特征，发病率同比上升了 <strong>15.2%</strong>。这直接导致了该阶段畜禽的平均日增重下降了 <strong>8.5%</strong>，对整体养殖效益产生了显著的负面影响。</p>
+        </div>
+        <div class="ai-report-section">
+          <h5 style="color: #409eff;"><i class="fas fa-filter"></i> 核心数据影响因素</h5>
+          <ul style="padding-left: 20px; line-height: 1.8;">
+            <li><strong>温差波动：</strong>3月份昼夜温差超过 12°C 的天数占 65%，是诱发呼吸道疾病的首要环境因素。</li>
+            <li><strong>氨气浓度：</strong>监测数据显示，当舍内氨气浓度超过 20ppm 时，24小时内出现行为异常的比例提升了 40%。</li>
+            <li><strong>湿度关联：</strong>高湿度（>75%）环境下，皮肤寄生虫的检出率与湿度呈现 0.82 的强正相关性。</li>
+          </ul>
+        </div>
+        <div class="ai-report-section">
+          <h5 style="color: #67c23a;"><i class="fas fa-lightbulb"></i> 智能化改进建议</h5>
+          <p>建议在下个季度加强 <strong>A区</strong> 的通风自动化控制逻辑，将氨气阈值从 25ppm 调低至 18ppm，并引入基于 AI 的<strong>咳嗽声监测系统</strong>，以实现呼吸道疾病的早期预警（比肉眼观察提前约 48 小时）。</p>
+        </div>
+      </div>
+    `;
     aiLoading.value = false;
   }, 1500);
 };
@@ -385,7 +444,7 @@ const handleCommand = (command) => {
     })
       .then(() => ElMessage.success("退出成功"))
       .catch(() => {});
-  } else if (command === "profile") ElMessage.info("跳转到个人中心");
+  } else if (command === "profile") activeIndex.value = "profile";
   else if (command === "notifications") ElMessage.info("跳转到消息通知");
 };
 const goToMonitor = () => {
@@ -542,15 +601,20 @@ const initCharts = () => {
       });
     }
 
-    // 2. 预警分布图表（
+    // 2. 预警分布图表
     const warningChart = echarts.init(document.getElementById("warningChart"));
     if (warningChart) {
       warningChart.setOption({
-        color: ["#ff4d4f", "#faad14", "#1890ff", "#52c41a"],
-        tooltip: { trigger: "item" },
+        color: ["#5470c6", "#91cc75", "#fac858", "#ee6666"],
+        tooltip: { 
+          trigger: "item",
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          borderWidth: 0,
+          boxShadow: '0 0 10px rgba(0,0,0,0.1)'
+        },
         legend: {
-          orient: "vertical",
-          left: "left",
+          orient: "horizontal",
+          bottom: "0",
           data: ["温度异常", "湿度异常", "行为异常", "其他异常"],
         },
         series: [
@@ -558,13 +622,20 @@ const initCharts = () => {
             name: "预警类型分布",
             type: "pie",
             radius: ["40%", "70%"],
+            center: ['50%', '45%'],
+            roseType: 'radius',
+            itemStyle: {
+              borderRadius: 8,
+              borderColor: '#fff',
+              borderWidth: 2
+            },
             data: [
               { value: 35, name: "温度异常" },
               { value: 25, name: "湿度异常" },
               { value: 20, name: "行为异常" },
               { value: 20, name: "其他异常" },
             ],
-            label: { show: true, formatter: "{b}: {d}%" },
+            label: { show: true, formatter: "{b}\n{d}%" },
           },
         ],
       });
@@ -574,16 +645,30 @@ const initCharts = () => {
     const scaleChart = echarts.init(document.getElementById("scaleChart"));
     if (scaleChart) {
       scaleChart.setOption({
-        color: ["#2e7d32", "#1976d2", "#f57c00"],
+        color: [
+          new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: '#83bff6' },
+            { offset: 0.5, color: '#188df0' },
+            { offset: 1, color: '#188df0' }
+          ]),
+          new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: '#91cc75' },
+            { offset: 1, color: '#52c41a' }
+          ]),
+          new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: '#fac858' },
+            { offset: 1, color: '#ff9800' }
+          ])
+        ],
         tooltip: { trigger: "axis" },
         legend: { data: ["猪", "鸡", "牛"] },
         grid: { left: "3%", right: "4%", bottom: "3%", containLabel: true },
         xAxis: { type: "category", data: ["A区", "B区", "C区"] },
         yAxis: { type: "value", name: "存栏数量" },
         series: [
-          { name: "猪", type: "bar", data: [240, 180, 120] },
-          { name: "鸡", type: "bar", data: [500, 450, 380] },
-          { name: "牛", type: "bar", data: [80, 65, 50] },
+          { name: "猪", type: "bar", barWidth: '15%', itemStyle: { borderRadius: [4, 4, 0, 0] }, data: [240, 180, 120] },
+          { name: "鸡", type: "bar", barWidth: '15%', itemStyle: { borderRadius: [4, 4, 0, 0] }, data: [500, 450, 380] },
+          { name: "牛", type: "bar", barWidth: '15%', itemStyle: { borderRadius: [4, 4, 0, 0] }, data: [80, 65, 50] },
         ],
       });
     }
@@ -624,6 +709,7 @@ const currentComponent = computed(() => {
     data: Data,
     warning: Warning,
     knowledge: Knowledge,
+    profile: Profile,
   };
   return map[activeIndex.value] || Dashboard;
 });
@@ -644,6 +730,8 @@ provide("isFullscreen", isFullscreen);
 provide("aiAnalysisResult", aiAnalysisResult);
 provide("aiLoading", aiLoading);
 provide("totalWarnings", totalWarnings);
+provide("syncing", syncing);
+provide("syncOfficialData", syncOfficialData);
 provide("dialogVisible", dialogVisible);
 provide("selectedKnowledge", selectedKnowledge);
 provide("handleCommand", handleCommand);
@@ -701,9 +789,11 @@ watch(activeIndex, () => nextTick(initCharts));
   --text-primary: #303133;
   --text-regular: #606266;
   --text-secondary: #909399;
-  --border-color: #dcdfe6;
-  --background-color: #f5f7fa;
+  --border-color: #f0f0f0;
+  --background-color: #f8fafc;
   --card-background: #ffffff;
+  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  --hover-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
 }
 
 * {
@@ -777,9 +867,11 @@ body {
   --text-primary: #303133;
   --text-regular: #606266;
   --text-secondary: #909399;
-  --border-color: #dcdfe6;
-  --background-color: #f5f7fa;
+  --border-color: #f0f0f0;
+  --background-color: #f8fafc;
   --card-background: #ffffff;
+  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  --hover-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
 }
 
 * {
@@ -1268,14 +1360,15 @@ body {
 }
 
 .el-card {
-  border-radius: 8px;
+  border-radius: 12px;
   border: 1px solid var(--border-color);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  transition: box-shadow 0.3s;
+  box-shadow: var(--card-shadow);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .el-card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--hover-shadow);
+  transform: translateY(-2px);
 }
 
 /* 工具类 */

@@ -144,15 +144,24 @@ function initWarningTypeChart() {
 
   // 设置数据
   warningTypeChart.setOption({
-    tooltip: { trigger: "item" },
+    color: ["#ff4d4f", "#faad14", "#1890ff", "#52c41a"],
+    tooltip: { trigger: "item", formatter: "{a} <br/>{b}: {c} ({d}%)" },
+    legend: { bottom: "0", left: "center" },
     series: [
       {
+        name: "预警类型",
         type: "pie",
+        radius: ["50%", "70%"],
+        avoidLabelOverlap: false,
+        itemStyle: { borderRadius: 10, borderColor: "#fff", borderWidth: 2 },
+        label: { show: false, position: "center" },
+        emphasis: { label: { show: true, fontSize: "18", fontWeight: "bold" } },
+        labelLine: { show: false },
         data: [
-          { name: "高温", value: 12 },
+          { name: "高温预警", value: 12 },
           { name: "湿度异常", value: 25 },
           { name: "氨气超标", value: 8 },
-          { name: "正常", value: 55 },
+          { name: "系统正常", value: 55 },
         ],
       },
     ],
@@ -168,13 +177,29 @@ function initWarningTrendChart() {
 
   warningTrendChart = echarts.init(dom);
   warningTrendChart.setOption({
-    xAxis: { data: ["0点", "4点", "8点", "12点", "16点", "20点", "24点"] },
-    yAxis: {},
+    tooltip: { trigger: "axis" },
+    grid: { left: "3%", right: "4%", bottom: "3%", containLabel: true },
+    xAxis: {
+      type: "category",
+      boundaryGap: false,
+      data: ["0点", "4点", "8点", "12点", "16点", "20点", "24点"],
+    },
+    yAxis: { type: "value" },
     series: [
       {
+        name: "预警数量",
         type: "line",
-        data: [2, 5, 3, 9, 6, 14, 7],
         smooth: true,
+        lineStyle: { width: 3, color: "#ff4d4f" },
+        showSymbol: false,
+        areaStyle: {
+          opacity: 0.8,
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: "rgba(255, 77, 79, 0.4)" },
+            { offset: 1, color: "rgba(255, 77, 79, 0)" },
+          ]),
+        },
+        data: [2, 5, 3, 9, 6, 14, 7],
       },
     ],
   });

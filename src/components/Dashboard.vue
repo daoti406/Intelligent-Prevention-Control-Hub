@@ -11,32 +11,15 @@
               <h2>实时监测畜禽健康，智能预警疫病风险</h2>
               <div class="stats-overview">
                 <div class="stat-item">
-                  <span
-                    class="stat-value"
-                    style="
-                      color: aliceblue;
-                      @keyframes data {
-                        0%,
-                        100% {
-                          transform: translateY(0);
-                        }
-                        50% {
-                          transform: translateY(-10px);
-                        }
-                      }
-                    "
-                    >24</span
-                  >
+                  <span class="stat-value jumping-data" style="color: #fff;">24</span>
                   <span class="stat-label">在线监测设备</span>
                 </div>
                 <div class="stat-item">
-                  <span class="stat-value" style="color: forestgreen"
-                    >97.8%</span
-                  >
+                  <span class="stat-value jumping-data" style="color: #67c23a;">97.8%</span>
                   <span class="stat-label">健康率</span>
                 </div>
                 <div class="stat-item">
-                  <span class="stat-value" style="color: red">4</span>
+                  <span class="stat-value jumping-data" style="color: #f56c6c;">4</span>
                   <span class="stat-label">今日预警</span>
                 </div>
               </div>
@@ -46,7 +29,7 @@
                 <template #header>
                   <div class="weather-header">
                     <i class="fas fa-sun"></i>
-                    <span style="color: darkgray">环境监测</span>
+                    <span style="color: #2fcf6d; font-weight: bold;">环境监测</span>
                     <br />
                   </div>
                 </template>
@@ -121,56 +104,42 @@
       </el-col>
     </el-row>
 
-    <!-- 快速操作和通知 -->
+    <!-- AI 建议和通知 -->
     <el-row :gutter="20" class="quick-actions-row">
       <el-col :span="16">
-        <el-card class="quick-actions-card">
+        <el-card class="ai-suggestions-card">
           <template #header>
             <div class="actions-header">
-              <i class="fas fa-cogs"></i>
-              <span>快速操作</span>
+              <i class="fas fa-robot"></i>
+              <span>AI 智能管理建议</span>
             </div>
           </template>
-          <div class="actions-grid">
-            <el-button type="primary" class="action-btn" @click="goToMonitor">
-              <i class="fas fa-video" style="font-size: 32px"></i>视频智能监控
-            </el-button>
-            <el-button
-              type="success"
-              class="action-btn"
-              @click="goToEnvControl"
-            >
-              <i class="fas fa-thermometer-half" style="font-size: 32px"></i
-              >环境监测调控
-            </el-button>
-            <el-button
-              type="warning"
-              class="action-btn"
-              @click="goToHealthAnalysis"
-            >
-              <i class="fas fa-heartbeat" style="font-size: 32px"></i
-              >健康分析引擎
-            </el-button>
-            <el-button type="danger" class="action-btn" @click="goToWarning">
-              <i class="fas fa-bell" style="font-size: 32px"></i>预警响应中心
-            </el-button>
-            <el-button
-              type="info"
-              class="action-btn"
-              @click="goToKnowledgeBase"
-            >
-              <i class="fas fa-book-medical" style="font-size: 32px"></i
-              >防疫知识库
-            </el-button>
-            <el-button type="primary" class="action-btn" @click="goToReport">
-              <i class="fas fa-file-alt" style="font-size: 32px"></i
-              >智能报告系统
-            </el-button>
+          <div class="ai-content">
+            <el-timeline>
+              <el-timeline-item timestamp="实时分析" placement="top" type="primary">
+                <el-card class="suggestion-item">
+                  <h4>环境优化建议</h4>
+                  <p>当前 A 区猪舍湿度偏高（72%），建议开启通风系统 15 分钟，以降低氨气浓度，预防呼吸道疾病。</p>
+                </el-card>
+              </el-timeline-item>
+              <el-timeline-item timestamp="策略提醒" placement="top" type="warning">
+                <el-card class="suggestion-item">
+                  <h4>防疫计划提醒</h4>
+                  <p>B 区鸡舍 2 号棚即将进入下一阶段疫苗接种期（预计 2 天后），请提前准备相关防疫物资。</p>
+                </el-card>
+              </el-timeline-item>
+              <el-timeline-item timestamp="生产分析" placement="top" type="success">
+                <el-card class="suggestion-item">
+                  <h4>饲喂效率分析</h4>
+                  <p>通过近 7 天数据分析，C 区牛舍的进食效率提升了 5%，建议维持当前的饲料配比方案。</p>
+                </el-card>
+              </el-timeline-item>
+            </el-timeline>
           </div>
         </el-card>
       </el-col>
       <el-col :span="8">
-        <el-card class="notifications-card">
+        <el-card class="notifications-card" style="height: 100%;">
           <template #header>
             <div class="notifications-header">
               <i class="fas fa-bell"></i>
@@ -191,6 +160,9 @@
               <el-tag :type="item.type" size="small">{{ item.status }}</el-tag>
             </div>
           </div>
+          <div class="mt-4 text-center">
+            <el-button type="text" @click="goToWarning">查看全部预警 <i class="el-icon-arrow-right"></i></el-button>
+          </div>
         </el-card>
       </el-col>
     </el-row>
@@ -210,14 +182,51 @@ const goToReport = inject("goToReport");
 </script>
 
 <style scoped>
+.ai-suggestions-card {
+  height: 100%;
+}
+.suggestion-item h4 {
+  margin: 0 0 8px 0;
+  color: #303133;
+}
+.suggestion-item p {
+  margin: 0;
+  color: #606266;
+  font-size: 14px;
+  line-height: 1.6;
+}
 .intro-text p {
-  color: forestgreen;
+  color: #fff;
+  opacity: 0.9;
 }
-.weather-item,
-stat-item {
-  color: aliceblue;
-  font-style: oblique;
-  font-family: Arial, Helvetica, sans-serif;
+.weather-item {
+  color: #fff;
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
 }
+.weather-label {
+  color: rgba(255, 255, 255, 0.8);
+}
+.weather-value {
+  color: #fff;
+}
+
+.jumping-data {
+  display: inline-block;
+  animation: jump 2s ease-in-out infinite;
+}
+
+@keyframes jump {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.stat-item:nth-child(2) .jumping-data {
+  animation-delay: 0.3s;
+}
+
+.stat-item:nth-child(3) .jumping-data {
+  animation-delay: 0.6s;
+}
+
 /* 组件特有样式 */
 </style>

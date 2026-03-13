@@ -18,6 +18,7 @@
         active-text-color="#52c41a"
         @select="handleSelect"
         class="nav-menu"
+        style="border-bottom: none; flex: 1; display: flex; justify-content: center; gap: 20px;"
       >
         <el-menu-item index="dashboard">首页</el-menu-item>
         <el-menu-item index="monitor">实时监控</el-menu-item>
