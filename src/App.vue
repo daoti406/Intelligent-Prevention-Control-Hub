@@ -444,8 +444,10 @@ const handleCommand = (command) => {
     })
       .then(() => ElMessage.success("退出成功"))
       .catch(() => {});
-  } else if (command === "profile") activeIndex.value = "profile";
-  else if (command === "notifications") ElMessage.info("跳转到消息通知");
+  } else if (command === "profile") {
+    activeIndex.value = "profile";
+    nextTick(initCharts);
+  } else if (command === "notifications") ElMessage.info("跳转到消息通知");
 };
 const goToMonitor = () => {
   activeIndex.value = "monitor";
@@ -605,29 +607,41 @@ const initCharts = () => {
     const warningChart = echarts.init(document.getElementById("warningChart"));
     if (warningChart) {
       warningChart.setOption({
-        color: ["#5470c6", "#91cc75", "#fac858", "#ee6666"],
+        color: ["#ff7875", "#ffc069", "#95de64", "#5cdbd3"],
         tooltip: { 
           trigger: "item",
-          backgroundColor: 'rgba(255, 255, 255, 0.9)',
-          borderWidth: 0,
-          boxShadow: '0 0 10px rgba(0,0,0,0.1)'
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          borderWidth: 1,
+          borderColor: '#eee',
+          textStyle: { color: '#333' },
+          formatter: '{b}: {c} ({d}%)'
         },
         legend: {
-          orient: "horizontal",
-          bottom: "0",
-          data: ["温度异常", "湿度异常", "行为异常", "其他异常"],
+          orient: "vertical",
+          right: "10%",
+          top: "center",
+          textStyle: { fontSize: 12, color: '#606266' }
         },
         series: [
           {
             name: "预警类型分布",
             type: "pie",
-            radius: ["40%", "70%"],
-            center: ['50%', '45%'],
-            roseType: 'radius',
+            radius: ["35%", "65%"],
+            center: ['40%', '50%'],
+            roseType: 'area',
             itemStyle: {
-              borderRadius: 8,
+              borderRadius: 10,
               borderColor: '#fff',
-              borderWidth: 2
+              borderWidth: 3,
+              shadowColor: 'rgba(0, 0, 0, 0.1)',
+              shadowBlur: 10
+            },
+            emphasis: {
+              itemStyle: {
+                borderColor: '#fff',
+                borderWidth: 3,
+                shadowBlur: 15
+              }
             },
             data: [
               { value: 35, name: "温度异常" },
@@ -635,7 +649,7 @@ const initCharts = () => {
               { value: 20, name: "行为异常" },
               { value: 20, name: "其他异常" },
             ],
-            label: { show: true, formatter: "{b}\n{d}%" },
+            label: { show: true, formatter: "{b}\n{d}%", fontSize: 11 },
           },
         ],
       });
@@ -645,30 +659,45 @@ const initCharts = () => {
     const scaleChart = echarts.init(document.getElementById("scaleChart"));
     if (scaleChart) {
       scaleChart.setOption({
-        color: [
-          new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: '#83bff6' },
-            { offset: 0.5, color: '#188df0' },
-            { offset: 1, color: '#188df0' }
-          ]),
-          new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: '#91cc75' },
-            { offset: 1, color: '#52c41a' }
-          ]),
-          new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: '#fac858' },
-            { offset: 1, color: '#ff9800' }
-          ])
-        ],
-        tooltip: { trigger: "axis" },
-        legend: { data: ["猪", "鸡", "牛"] },
-        grid: { left: "3%", right: "4%", bottom: "3%", containLabel: true },
-        xAxis: { type: "category", data: ["A区", "B区", "C区"] },
-        yAxis: { type: "value", name: "存栏数量" },
+        color: ["#1890ff", "#52c41a", "#faad14"],
+        tooltip: { trigger: "axis", backgroundColor: 'rgba(255, 255, 255, 0.95)', borderWidth: 1, borderColor: '#eee' },
+        legend: { data: ["猪", "鸡", "牛"], top: 10 },
+        grid: { left: "3%", right: "4%", bottom: "10%", top: "15%", containLabel: true },
+        xAxis: { 
+          type: "category", 
+          data: ["A区", "B区", "C区"],
+          axisLine: { lineStyle: { color: '#ddd' } },
+          axisLabel: { color: '#606266' }
+        },
+        yAxis: { 
+          type: "value", 
+          name: "存栏数量",
+          axisLine: { lineStyle: { color: '#ddd' } },
+          splitLine: { lineStyle: { color: '#f0f0f0' } },
+          axisLabel: { color: '#606266' }
+        },
         series: [
-          { name: "猪", type: "bar", barWidth: '15%', itemStyle: { borderRadius: [4, 4, 0, 0] }, data: [240, 180, 120] },
-          { name: "鸡", type: "bar", barWidth: '15%', itemStyle: { borderRadius: [4, 4, 0, 0] }, data: [500, 450, 380] },
-          { name: "牛", type: "bar", barWidth: '15%', itemStyle: { borderRadius: [4, 4, 0, 0] }, data: [80, 65, 50] },
+          { 
+            name: "猪", 
+            type: "bar", 
+            barWidth: '20%', 
+            itemStyle: { borderRadius: [6, 6, 0, 0], shadowColor: 'rgba(0, 0, 0, 0.1)', shadowBlur: 8 },
+            data: [240, 180, 120] 
+          },
+          { 
+            name: "鸡", 
+            type: "bar", 
+            barWidth: '20%', 
+            itemStyle: { borderRadius: [6, 6, 0, 0], shadowColor: 'rgba(0, 0, 0, 0.1)', shadowBlur: 8 },
+            data: [500, 450, 380] 
+          },
+          { 
+            name: "牛", 
+            type: "bar", 
+            barWidth: '20%', 
+            itemStyle: { borderRadius: [6, 6, 0, 0], shadowColor: 'rgba(0, 0, 0, 0.1)', shadowBlur: 8 },
+            data: [80, 65, 50] 
+          },
         ],
       });
     }

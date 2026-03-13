@@ -25,12 +25,14 @@
           <div>
             <el-row :gutter="20">
               <el-col :span="6" v-for="(stat, index) in dataStats" :key="index">
-                <el-card shadow="hover" style="text-align: center">
-                  <div class="data-highlight" :class="stat.type">
-                    {{ stat.value }}
-                  </div>
-                  <div style="margin-top: 8px; color: #666">
-                    {{ stat.label }}
+                <el-card shadow="hover" class="stat-card">
+                  <div style="text-align: center; padding: 20px 0;">
+                    <div class="data-highlight" :class="stat.type" style="font-size: 28px; margin-bottom: 12px;">
+                      {{ stat.value }}
+                    </div>
+                    <div style="color: #909399; font-size: 14px; font-weight: 500;">
+                      {{ stat.label }}
+                    </div>
                   </div>
                 </el-card>
               </el-col>
@@ -69,12 +71,17 @@
               </el-button>
             </div>
           </template>
-          <div v-if="aiAnalysisResult" v-html="aiAnalysisResult"></div>
+          <div v-if="aiAnalysisResult" class="ai-result" v-html="aiAnalysisResult"></div>
           <div v-else-if="!aiLoading" class="ai-analysis-placeholder">
-            点击“重新分析”按钮，获取基于2025年数据的AI智能洞察。
+            <div style="text-align: center; padding: 40px 20px;">
+              <i class="fas fa-robot" style="font-size: 48px; color: #52c41a; margin-bottom: 16px; display: block;"></i>
+              <p style="color: #909399; margin: 0;">AI智能分析系统就绪</p>
+              <p style="color: #c0c4cc; font-size: 12px; margin-top: 8px;">Click “Re-analyze” button to get AI insights based on 2025 data</p>
+            </div>
           </div>
-          <div v-else style="text-align: center; padding: 20px">
-            <i class="el-icon-loading"></i> AI正在思考中...
+          <div v-else style="text-align: center; padding: 40px 20px;">
+            <el-spin size="large" />
+            <p style="color: #909399; margin-top: 16px;">AI正在深度分析中...</p>
           </div>
         </el-card>
       </el-col>
@@ -185,4 +192,22 @@ function initDiseaseChart() {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+.stat-card {
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.stat-card:hover {
+  box-shadow: 0 8px 30px rgba(82, 196, 26, 0.15);
+  transform: translateY(-4px);
+}
+.ai-result {
+  padding: 20px 0;
+}
+.ai-analysis-placeholder {
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+</style>

@@ -6,9 +6,8 @@
         <el-card class="welcome-card">
           <div class="welcome-content">
             <div class="welcome-text">
-              <br />
-              <h1>欢迎使用智栏哨兵系统</h1>
-              <h2>实时监测畜禽健康，智能预警疫病风险</h2>
+              <h1 style="font-size: 32px; margin: 0 0 10px 0; background: linear-gradient(135deg, #2e7d32 0%, #52c41a 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">欢迎使用智栏哨兵系统</h1>
+              <h2 style="font-size: 18px; color: #606266; margin: 0 0 20px 0; font-weight: 400;">实时监测畜禽健康，智能预警疫病风险</h2>
               <div class="stats-overview">
                 <div class="stat-item">
                   <span class="stat-value jumping-data" style="color: #fff;">24</span>

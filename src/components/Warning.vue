@@ -61,19 +61,24 @@
                   </span>
                 </template>
               </el-table-column>
-              <el-table-column label="操作" width="120">
+              <el-table-column label="操作" width="140" align="center">
                 <template #default="scope">
-                  <el-button
-                    size="small"
-                    @click="handleWarningDetail(scope.row)"
-                    >详情</el-button
-                  >
-                  <el-button
-                    size="small"
-                    type="success"
-                    @click="handleWarningConfirm(scope.row)"
-                    >处理</el-button
-                  >
+                  <div style="display: flex; gap: 8px; justify-content: center;">
+                    <el-button
+                      size="small"
+                      link
+                      type="primary"
+                      @click="handleWarningDetail(scope.row)"
+                      >详情</el-button
+                    >
+                    <el-button
+                      size="small"
+                      link
+                      type="success"
+                      @click="handleWarningConfirm(scope.row)"
+                      >处理</el-button
+                    >
+                  </div>
                 </template>
               </el-table-column>
             </el-table>

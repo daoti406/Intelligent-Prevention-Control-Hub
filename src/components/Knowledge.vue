@@ -73,6 +73,12 @@
         </el-card>
       </el-col>
     </el-row>
+    <!-- 知识详情 Dialog -->
+    <el-dialog v-model="dialogVisible" :title="selectedKnowledge?.title" width="70%" @close="dialogClose">
+      <div v-if="selectedKnowledge" class="knowledge-detail">
+        <div v-html="selectedKnowledge.content" class="detail-content"></div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -86,6 +92,40 @@ const addKnowledge = inject("addKnowledge");
 const viewKnowledge = inject("viewKnowledge");
 const syncOfficialData = inject("syncOfficialData");
 const syncing = inject("syncing");
+const dialogVisible = inject("dialogVisible");
+const selectedKnowledge = inject("selectedKnowledge");
+const dialogClose = inject("dialogClose");
 </script>
 
-<style scoped></style>
+<style scoped>
+.knowledge-detail {
+  padding: 20px 0;
+}
+.detail-content {
+  line-height: 1.8;
+  color: #333;
+}
+.detail-content h3 {
+  color: #2e7d32;
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+.detail-content h4 {
+  color: #52c41a;
+  margin-top: 15px;
+  margin-bottom: 8px;
+}
+.detail-content p {
+  margin-bottom: 10px;
+}
+.detail-content ul, .detail-content ol {
+  margin-left: 20px;
+  margin-bottom: 10px;
+}
+.detail-content li {
+  margin-bottom: 5px;
+}
+.detail-content strong {
+  color: #2e7d32;
+}
+</style>
