@@ -26,7 +26,7 @@
             </div>
           </template>
           <div>
-            <el-row :gutter="20">
+            <el-row :gutter="20" v-if="knowledgeList && knowledgeList.length > 0">
               <el-col
                 :span="6"
                 v-for="(item, index) in knowledgeList"
@@ -69,14 +69,21 @@
                 </el-card>
               </el-col>
             </el-row>
+            <div v-else style="text-align: center; padding: 40px; color: #909399;">
+              <i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 16px; display: block; color: #c0c4cc;"></i>
+              <p>暂无防疫知识数据，请点击"同步官方数据"按钮加载</p>
+            </div>
           </div>
         </el-card>
       </el-col>
     </el-row>
     <!-- 知识详情 Dialog -->
-    <el-dialog v-model="dialogVisible" :title="selectedKnowledge?.title" width="70%" @close="dialogClose">
+    <el-dialog v-model="dialogVisible" :title="selectedKnowledge?.title" width="70%" @close="dialogClose" destroy-on-close>
       <div v-if="selectedKnowledge" class="knowledge-detail">
-        <div v-html="selectedKnowledge.content" class="detail-content"></div>
+        <div v-if="selectedKnowledge.content" v-html="selectedKnowledge.content" class="detail-content"></div>
+        <div v-else style="text-align: center; color: #909399; padding: 20px;">
+          <p>暂无详细内容</p>
+        </div>
       </div>
     </el-dialog>
   </div>
@@ -87,7 +94,7 @@ import { inject } from "vue";
 
 const knowledgeList = inject("knowledgeList");
 const searchKeyword = inject("searchKeyword");
-const searchKnowledge = inject("searchKeyword");
+const searchKnowledge = inject("searchKnowledge");
 const addKnowledge = inject("addKnowledge");
 const viewKnowledge = inject("viewKnowledge");
 const syncOfficialData = inject("syncOfficialData");
