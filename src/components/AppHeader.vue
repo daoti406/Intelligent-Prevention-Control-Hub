@@ -25,7 +25,6 @@
         <el-menu-item index="data">数据分析</el-menu-item>
         <el-menu-item index="warning">预警中心</el-menu-item>
         <el-menu-item index="knowledge">防疫知识</el-menu-item>
-        <el-menu-item index="aiassistant" style="color: #2e7d32; font-weight: bold;"><i class="fas fa-robot"></i> AI小助手</el-menu-item>
       </el-menu>
       <el-dropdown @command="handleCommand">
         <div class="user-info">

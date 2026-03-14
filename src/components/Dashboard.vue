@@ -170,9 +170,9 @@ const goToHealthAnalysis = inject("goToHealthAnalysis");
 const goToWarning = inject("goToWarning");
 const goToKnowledgeBase = inject("goToKnowledgeBase");
 const goToReport = inject("goToReport");
-const setActiveIndex = inject("setActiveIndex");
+const openAIAssistant = inject("openAIAssistant");
 const goToAIAssistant = () => {
-  setActiveIndex("aiassistant");
+  openAIAssistant();
 };
 </script>
 

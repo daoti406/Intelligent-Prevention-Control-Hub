@@ -4,6 +4,17 @@
     <component :is="currentComponent" />
   </main>
   <AppFooter />
+  
+  <!-- AI 小助手弹窗 -->
+  <el-dialog 
+    v-model="aiAssistantDialogVisible" 
+    title="AI 小助手" 
+    width="90%"
+    :close-on-click-modal="false"
+    class="ai-assistant-dialog"
+  >
+    <AIAssistant />
+  </el-dialog>
 </template>
 
 <script setup>
@@ -731,6 +742,7 @@ const handleResize = () => {
 
 const dialogVisible = ref(false);
 const selectedKnowledge = ref(null);
+const aiAssistantDialogVisible = ref(false);
 
 const currentComponent = computed(() => {
   const map = {
@@ -740,7 +752,6 @@ const currentComponent = computed(() => {
     warning: Warning,
     knowledge: Knowledge,
     profile: Profile,
-    aiassistant: AIAssistant,
   };
   return map[activeIndex.value] || Dashboard;
 });
@@ -786,6 +797,9 @@ provide("handleRefresh", handleRefresh);
 provide("toggleFullscreen", toggleFullscreen);
 provide("fetchAIAnalysis", fetchAIAnalysis);
 provide("exportData", () => ElMessage.info("导出功能开发中"));
+provide("aiAssistantDialogVisible", aiAssistantDialogVisible);
+provide("openAIAssistant", () => (aiAssistantDialogVisible.value = true));
+provide("closeAIAssistant", () => (aiAssistantDialogVisible.value = false));
 
 onMounted(() => {
   initCharts();
