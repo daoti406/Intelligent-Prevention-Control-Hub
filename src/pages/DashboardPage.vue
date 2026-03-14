@@ -16,7 +16,7 @@
               </span>
             </div>
             <div class="status-item">
-              <span class="status-label">AI 模型</span>
+              <span class="status-label">AI智能助手</span>
               <span class="status-value">
                 <i class="fas fa-brain"></i> 实时就绪
               </span>
@@ -72,54 +72,9 @@
         </el-card>
       </el-col>
 
-      <!-- 系统概览 -->
+      <!-- AI 智能助手  -->
       <el-col :span="8">
-        <el-card class="overview-card">
-          <template #header>
-            <div class="chart-header">
-              <i class="fas fa-dashboard"></i>
-              <span>系统概览</span>
-            </div>
-          </template>
-          <div class="overview-content">
-            <div class="overview-item">
-              <div class="overview-icon" style="background: rgba(76, 175, 80, 0.1); color: #4caf50">
-                <i class="fas fa-video"></i>
-              </div>
-              <div class="overview-text">
-                <div class="overview-label">监控摄像头</div>
-                <div class="overview-value">6/6 在线</div>
-              </div>
-            </div>
-            <div class="overview-item">
-              <div class="overview-icon" style="background: rgba(33, 150, 243, 0.1); color: #2196f3">
-                <i class="fas fa-database"></i>
-              </div>
-              <div class="overview-text">
-                <div class="overview-label">数据同步</div>
-                <div class="overview-value">实时更新</div>
-              </div>
-            </div>
-            <div class="overview-item">
-              <div class="overview-icon" style="background: rgba(156, 39, 176, 0.1); color: #9c27b0">
-                <i class="fas fa-brain"></i>
-              </div>
-              <div class="overview-text">
-                <div class="overview-label">AI 模型</div>
-                <div class="overview-value">运行中</div>
-              </div>
-            </div>
-            <div class="overview-item">
-              <div class="overview-icon" style="background: rgba(255, 152, 0, 0.1); color: #ff9800">
-                <i class="fas fa-exclamation-triangle"></i>
-              </div>
-              <div class="overview-text">
-                <div class="overview-label">预警数</div>
-                <div class="overview-value">12 条</div>
-              </div>
-            </div>
-          </div>
-        </el-card>
+        <AIChatAssistant />
       </el-col>
     </el-row>
 
@@ -177,6 +132,7 @@ import { useRouter } from "vue-router";
 import * as echarts from "echarts";
 import { getDataStats } from "../services/dataService";
 import { ElMessage } from "element-plus";
+import AIChatAssistant from "../components/AIChatAssistant.vue";
 
 const router = useRouter();
 const dataStats = ref(getDataStats());
@@ -500,57 +456,6 @@ onUnmounted(() => {
 
 .chart-card {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.overview-card {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.overview-content {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.overview-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: #fafafa;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-}
-
-.overview-item:hover {
-  background: #f0f0f0;
-}
-
-.overview-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  flex-shrink: 0;
-}
-
-.overview-text {
-  flex: 1;
-}
-
-.overview-label {
-  font-size: 12px;
-  color: #999;
-  margin-bottom: 4px;
-}
-
-.overview-value {
-  font-size: 14px;
-  font-weight: 600;
-  color: #333;
 }
 
 .nav-card {
