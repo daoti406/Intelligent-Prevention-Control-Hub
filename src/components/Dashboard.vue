@@ -103,37 +103,29 @@
       </el-col>
     </el-row>
 
-    <!-- AI 建议和通知 -->
+    <!-- AI 小助手入口 -->
     <el-row :gutter="20" class="quick-actions-row">
       <el-col :span="16">
         <el-card class="ai-suggestions-card">
           <template #header>
             <div class="actions-header">
               <i class="fas fa-robot"></i>
-              <span>AI 智能管理建议</span>
+              <span>AI 小助手</span>
             </div>
           </template>
           <div class="ai-content">
-            <el-timeline>
-              <el-timeline-item timestamp="实时分析" placement="top" type="primary">
-                <el-card class="suggestion-item">
-                  <h4>环境优化建议</h4>
-                  <p>当前 A 区猪舍湿度偏高（72%），建议开启通风系统 15 分钟，以降低氨气浓度，预防呼吸道疾病。</p>
-                </el-card>
-              </el-timeline-item>
-              <el-timeline-item timestamp="策略提醒" placement="top" type="warning">
-                <el-card class="suggestion-item">
-                  <h4>防疫计划提醒</h4>
-                  <p>B 区鸡舍 2 号棚即将进入下一阶段疫苗接种期（预计 2 天后），请提前准备相关防疫物资。</p>
-                </el-card>
-              </el-timeline-item>
-              <el-timeline-item timestamp="生产分析" placement="top" type="success">
-                <el-card class="suggestion-item">
-                  <h4>饲喂效率分析</h4>
-                  <p>通过近 7 天数据分析，C 区牛舍的进食效率提升了 5%，建议维持当前的饲料配比方案。</p>
-                </el-card>
-              </el-timeline-item>
-            </el-timeline>
+            <div class="ai-assistant-intro">
+              <div class="intro-icon">
+                <i class="fas fa-robot"></i>
+              </div>
+              <div class="intro-text">
+                <h4>欢迎使用 AI 小助手</h4>
+                <p>一个功能强大的智能助手，帮助你实时获取智能建议、调整环境指数、处理畜牧数据、以及获取 AI 数据分析报告。</p>
+                <el-button type="primary" @click="goToAIAssistant">
+                  <i class="fas fa-arrow-right"></i> 立即使用
+                </el-button>
+              </div>
+            </div>
           </div>
         </el-card>
       </el-col>
@@ -178,6 +170,10 @@ const goToHealthAnalysis = inject("goToHealthAnalysis");
 const goToWarning = inject("goToWarning");
 const goToKnowledgeBase = inject("goToKnowledgeBase");
 const goToReport = inject("goToReport");
+const setActiveIndex = inject("setActiveIndex");
+const goToAIAssistant = () => {
+  setActiveIndex("aiassistant");
+};
 </script>
 
 <style scoped>
@@ -225,6 +221,43 @@ const goToReport = inject("goToReport");
 
 .stat-item:nth-child(3) .jumping-data {
   animation-delay: 0.6s;
+}
+
+.ai-assistant-intro {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 8px;
+  text-align: left;
+}
+
+.intro-icon {
+  font-size: 48px;
+  color: #2e7d32;
+  opacity: 0.8;
+}
+
+.ai-assistant-intro .intro-text {
+  flex: 1;
+}
+
+.ai-assistant-intro .intro-text h4 {
+  margin: 0 0 10px 0;
+  color: #303133;
+  font-size: 16px;
+}
+
+.ai-assistant-intro .intro-text p {
+  margin: 0 0 15px 0;
+  color: #606266;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.ai-assistant-intro .el-button {
+  margin-top: 10px;
 }
 
 /* 组件特有样式 */

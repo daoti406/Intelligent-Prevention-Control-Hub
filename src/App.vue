@@ -27,6 +27,7 @@ import Data from "./components/Data.vue";
 import Warning from "./components/Warning.vue";
 import Knowledge from "./components/Knowledge.vue";
 import Profile from "./components/Profile.vue";
+import AIAssistant from "./components/AIAssistant.vue";
 const activeIndex = ref("dashboard");
 const username = ref("用户");
 const dateRange = ref([]);
@@ -739,6 +740,7 @@ const currentComponent = computed(() => {
     warning: Warning,
     knowledge: Knowledge,
     profile: Profile,
+    aiassistant: AIAssistant,
   };
   return map[activeIndex.value] || Dashboard;
 });
