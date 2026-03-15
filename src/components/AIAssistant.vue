@@ -330,6 +330,62 @@
         </div>
       </el-tab-pane>
 
+      <!-- 预警处理标签页 -->
+      <el-tab-pane label="预警处理" name="warning">
+        <div class="warning-handling-panel">
+          <div class="panel-header">
+            <h3><i class="fas fa-bell"></i> 预警处理中心</h3>
+            <el-button type="primary" size="small" @click="refreshWarnings">
+              <i class="fas fa-sync"></i> 刷新
+            </el-button>
+          </div>
+
+          <!-- 预警卡片列表 -->
+          <div class="warning-list">
+            <el-row :gutter="16">
+              <el-col :span="24" v-for="item in warningsList" :key="item.id" class="mb-3">
+                <el-card shadow="hover" class="warning-item-card">
+                  <div class="warning-item-content">
+                    <div class="warning-info">
+                      <div class="warning-title-row">
+                        <el-tag :type="item.severity === 'high' ? 'danger' : 'warning'" effect="dark" size="small">
+                          {{ item.severity === 'high' ? '重度' : '轻度' }}
+                        </el-tag>
+                        <span class="warning-title">{{ item.type }}</span>
+                      </div>
+                      <div class="warning-desc">{{ item.description }}</div>
+                      <div class="warning-meta">
+                        <span><i class="fas fa-map-marker-alt"></i> {{ item.location }}</span>
+                        <span class="ml-3"><i class="far fa-clock"></i> {{ item.timestamp }}</span>
+                      </div>
+                    </div>
+                    <div class="warning-actions">
+                      <el-button 
+                        v-if="item.severity === 'low'" 
+                        type="primary" 
+                        size="small" 
+                        @click="handleLightWarning(item)"
+                      >
+                        调整参数
+                      </el-button>
+                      <el-button 
+                        v-else 
+                        type="danger" 
+                        size="small" 
+                        @click="handleSevereWarning(item)"
+                      >
+                        联系兽医
+                      </el-button>
+                    </div>
+                  </div>
+                </el-card>
+              </el-col>
+            </el-row>
+            <el-empty v-if="warningsList.length === 0" description="暂无待处理预警"></el-empty>
+          </div>
+        </div>
+      </el-tab-pane>
+
       <!-- 数据分析标签页 -->
       <el-tab-pane label="数据分析" name="analysis">
         <div class="analysis-panel">
@@ -345,6 +401,91 @@
         </div>
       </el-tab-pane>
     </el-tabs>
+
+    <!-- 轻度预警处理对话框 -->
+    <el-dialog 
+      v-model="lightWarningDialogVisible" 
+      title="环境参数快速调整" 
+      width="400px" 
+      append-to-body
+      class="compact-dialog"
+    >
+      <div v-if="currentWarning" class="adjustment-quick-form">
+        <div class="quick-info mb-4">
+          <el-tag size="small" type="warning">{{ currentWarning.location }}</el-tag>
+          <span class="ml-2">{{ currentWarning.type }}</span>
+        </div>
+        <div class="quick-sliders">
+          <div class="quick-slider-item">
+            <div class="slider-label">温度调节</div>
+            <el-slider v-model="environmentParams.temperature" :min="15" :max="35" :step="0.1"></el-slider>
+          </div>
+          <div class="quick-slider-item">
+            <div class="slider-label">湿度调节</div>
+            <el-slider v-model="environmentParams.humidity" :min="30" :max="80"></el-slider>
+          </div>
+          <div class="quick-slider-item">
+            <div class="slider-label">通风强度</div>
+            <el-slider v-model="environmentParams.ventilation" :min="0" :max="100"></el-slider>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="lightWarningDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="applyQuickAdjustment">确认应用</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 重度预警处理对话框 (兽医服务) -->
+    <el-dialog 
+      v-model="severeWarningDialogVisible" 
+      title="兽医专家服务" 
+      width="550px" 
+      append-to-body
+    >
+      <div v-if="currentWarning" class="vet-service-container">
+        <el-alert 
+          title="检测到重度行为异常，建议立即咨询专业兽医" 
+          type="error" 
+          :closable="false" 
+          show-icon 
+          class="mb-4"
+        />
+        
+        <el-tabs type="border-card">
+          <el-tab-pane label="线上咨询">
+            <div class="online-vet-form">
+              <p class="text-sm text-gray mb-3">AI 已为您整理好预警数据，点击发送即可同步给云端兽医。</p>
+              <el-form label-position="top">
+                <el-form-item label="选择在线兽医">
+                  <el-select v-model="selectedVetId" placeholder="请选择在线兽医" style="width: 100%">
+                    <el-option label="李医生 (畜牧学博士 - 在线)" value="1" />
+                    <el-option label="王医生 (资深防疫专家 - 在线)" value="2" />
+                    <el-option label="张医生 (行为分析专家 - 忙碌)" value="3" />
+                  </el-select>
+                </el-form-item>
+                <el-form-item label="补充说明 (可选)">
+                  <el-input type="textarea" placeholder="描述更多现场细节..." v-model="vetNote" />
+                </el-form-item>
+                <el-button type="primary" class="w-full" @click="sendToOnlineVet">发送数据并开始咨询</el-button>
+              </el-form>
+            </div>
+          </el-tab-pane>
+          <el-tab-pane label="线下联系">
+            <div class="offline-contacts">
+              <div v-for="vet in offlineVets" :key="vet.id" class="contact-card">
+                <div class="contact-info">
+                  <div class="contact-name">{{ vet.name }}</div>
+                  <div class="contact-detail"><i class="fas fa-phone"></i> {{ vet.phone }}</div>
+                  <div class="contact-detail"><i class="fas fa-map-marker-alt"></i> {{ vet.address }}</div>
+                </div>
+                <el-button type="primary" plain size="small" @click="copyPhone(vet.phone)">复制号码</el-button>
+              </div>
+            </div>
+          </el-tab-pane>
+        </el-tabs>
+      </div>
+    </el-dialog>
 
     <!-- 详情对话框 -->
     <el-dialog v-model="detailsDialogVisible" title="数据详情" width="50%">
@@ -513,6 +654,68 @@ const cattleData = ref([
     lastUpdate: "2025-01-11 15:30"
   }
 ]);
+
+// --- 预警处理模块数据与方法 ---
+const warningsList = ref([
+  {
+    id: 1,
+    location: "A 区猪舍 1 号",
+    type: "环境异常 - 湿度",
+    description: "当前湿度 72% 已超过设定阈值，建议开启通风系统。",
+    severity: "low",
+    timestamp: "10分钟前"
+  },
+  {
+    id: 2,
+    location: "B 区鸡舍 2 号",
+    type: "行为异常 - 聚堆",
+    description: "检测到异常聚堆行为，伴随采食量下降，疑似群体健康风险。",
+    severity: "high",
+    timestamp: "15分钟前"
+  }
+]);
+
+const lightWarningDialogVisible = ref(false);
+const severeWarningDialogVisible = ref(false);
+const currentWarning = ref(null);
+const selectedVetId = ref("");
+const vetNote = ref("");
+
+const offlineVets = ref([
+  { id: 1, name: "镇畜牧防疫站", phone: "0571-88889999", address: "西湖区翠苑街道 12 号" },
+  { id: 2, name: "王兽医 (私人执业)", phone: "138-xxxx-xxxx", address: "上城区南星街道" }
+]);
+
+const refreshWarnings = () => {
+  ElMessage.info("正在获取最新预警...");
+};
+
+const handleLightWarning = (item) => {
+  currentWarning.value = item;
+  lightWarningDialogVisible.value = true;
+};
+
+const handleSevereWarning = (item) => {
+  currentWarning.value = item;
+  severeWarningDialogVisible.value = true;
+};
+
+const applyQuickAdjustment = () => {
+  ElMessage.success("环境参数已应用至现场设备");
+  lightWarningDialogVisible.value = false;
+};
+
+const sendToOnlineVet = () => {
+  if (!selectedVetId.value) return ElMessage.warning("请选择兽医");
+  ElMessage.success("预警数据已加密发送至云端，请保持通话通畅");
+  severeWarningDialogVisible.value = false;
+};
+
+const copyPhone = (phone) => {
+  navigator.clipboard.writeText(phone);
+  ElMessage.success("号码已复制到剪贴板");
+};
+// --- 预警处理模块结束 ---
 
 // 分析报告
 const analysisLoading = ref(false);
@@ -839,6 +1042,86 @@ const viewDetails = (row) => {
   border-radius: 4px;
 }
 
+/* 预警处理样式 */
+.warning-panel {
+  padding: 5px 0;
+}
+
+.warning-item-card {
+  border-left: 5px solid transparent;
+  transition: all 0.2s;
+}
+
+.warning-item-card:hover {
+  transform: translateX(5px);
+}
+
+.warning-item-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.warning-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.warning-title {
+  font-weight: bold;
+  font-size: 16px;
+  color: #303133;
+}
+
+.warning-desc {
+  font-size: 14px;
+  color: #606266;
+  margin-bottom: 8px;
+}
+
+.warning-meta {
+  font-size: 12px;
+  color: #909399;
+}
+
+.vet-service-container {
+  padding: 10px 0;
+}
+
+.contact-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.contact-card:last-child {
+  border-bottom: none;
+}
+
+.contact-name {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.contact-detail {
+  font-size: 13px;
+  color: #666;
+}
+
+.quick-slider-item {
+  margin-bottom: 20px;
+}
+
+.slider-label {
+  font-size: 13px;
+  margin-bottom: 5px;
+  color: #666;
+}
+
 /* 分析报告样式 */
 .analysis-panel {
   padding: 10px 0;
@@ -884,9 +1167,16 @@ const viewDetails = (row) => {
 }
 
 /* 工具类 */
-.mt-4 {
-  margin-top: 16px;
-}
+.mb-3 { margin-bottom: 12px; }
+.mb-4 { margin-bottom: 16px; }
+.ml-2 { margin-left: 8px; }
+.ml-3 { margin-left: 12px; }
+.mt-1 { margin-top: 4px; }
+.mr-2 { margin-right: 8px; }
+.w-full { width: 100%; }
+.text-sm { font-size: 12px; }
+.text-gray { color: #909399; }
+.font-bold { font-weight: bold; }
 
 /* 响应式 */
 @media (max-width: 768px) {
