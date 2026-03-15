@@ -512,7 +512,11 @@ import { ref, computed, inject } from "vue";
 import { ElMessage } from "element-plus";
 
 // 标签页控制
-const activeTab = ref("suggestions");
+const activeAITab = inject("activeAITab");
+const activeTab = computed({
+  get: () => activeAITab.value,
+  set: (val) => (activeAITab.value = val)
+});
 const dataTableTab = ref("pig");
 
 // 智能建议数据

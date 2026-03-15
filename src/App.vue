@@ -743,6 +743,7 @@ const handleResize = () => {
 const dialogVisible = ref(false);
 const selectedKnowledge = ref(null);
 const aiAssistantDialogVisible = ref(false);
+const activeAITab = ref("suggestions");
 
 const currentComponent = computed(() => {
   const map = {
@@ -800,6 +801,8 @@ provide("exportData", () => ElMessage.info("导出功能开发中"));
 provide("aiAssistantDialogVisible", aiAssistantDialogVisible);
 provide("openAIAssistant", () => (aiAssistantDialogVisible.value = true));
 provide("closeAIAssistant", () => (aiAssistantDialogVisible.value = false));
+provide("activeAITab", activeAITab);
+provide("setActiveAITab", (val) => (activeAITab.value = val));
 
 onMounted(() => {
   initCharts();

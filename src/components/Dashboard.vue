@@ -114,17 +114,55 @@
             </div>
           </template>
           <div class="ai-content">
-            <div class="ai-assistant-intro">
-              <div class="intro-icon">
-                <i class="fas fa-robot"></i>
+            <!-- 功能选项区域 -->
+            <div class="ai-options-grid">
+              <div class="ai-option-item" @click="openAIModule('suggestions')">
+                <div class="option-icon"><i class="fas fa-lightbulb"></i></div>
+                <div class="option-title">智能建议</div>
+                <div class="option-desc">获取实时的环保、防疫、饲喂建议</div>
               </div>
-              <div class="intro-text">
-                <h4>欢迎使用 AI 小助手</h4>
-                <p>一个功能强大的智能助手，帮助你实时获取智能建议、调整环境指数、处理畜牧数据、以及获取 AI 数据分析报告。</p>
-                <el-button type="primary" @click="goToAIAssistant">
-                  <i class="fas fa-arrow-right"></i> 立即使用
-                </el-button>
+              <div class="ai-option-item" @click="openAIModule('adjustment')">
+                <div class="option-icon"><i class="fas fa-sliders-h"></i></div>
+                <div class="option-title">指数调整</div>
+                <div class="option-desc">快速调整温度、湿度等环境参数</div>
               </div>
+              <div class="ai-option-item" @click="openAIModule('data-processing')">
+                <div class="option-icon"><i class="fas fa-database"></i></div>
+                <div class="option-title">数据处理</div>
+                <div class="option-desc">查看和分析畜牧数据统计</div>
+              </div>
+              <div class="ai-option-item" @click="openAIModule('warning')">
+                <div class="option-icon"><i class="fas fa-bell"></i></div>
+                <div class="option-title">预警处理</div>
+                <div class="option-desc">处理环境和行为异常预警</div>
+              </div>
+              <div class="ai-option-item" @click="openAIModule('analysis')">
+                <div class="option-icon"><i class="fas fa-chart-line"></i></div>
+                <div class="option-title">数据分析</div>
+                <div class="option-desc">生成 AI 智能分析报告</div>
+              </div>
+            </div>
+
+            <!-- 人机交互区域 -->
+            <div class="ai-interaction-area">
+              <div class="interaction-header">与 AI 小助手交互</div>
+              <div class="input-container">
+                <el-input
+                  v-model="userInput"
+                  placeholder="输入您的问题或需求..."
+                  class="user-input"
+                  @keyup.enter="sendMessage"
+                ></el-input>
+                <el-button-group class="input-actions">
+                  <el-button type="primary" @click="sendMessage">
+                    <i class="fas fa-paper-plane"></i> 发送
+                  </el-button>
+                  <el-button type="info" @click="startVoiceInput" :loading="voiceLoading">
+                    <i class="fas fa-microphone"></i> {{ voiceLoading ? '录音中...' : '语音' }}
+                  </el-button>
+                </el-button-group>
+              </div>
+              <div class="interaction-hint">💡 提示：您可以直接输入需求，AI 小助手会自动识别并跳转到相应功能</div>
             </div>
           </div>
         </el-card>
@@ -161,7 +199,8 @@
 </template>
 
 <script setup>
-import { inject } from "vue";
+import { inject, ref } from "vue";
+import { ElMessage } from "element-plus";
 
 const notifications = inject("notifications");
 const goToMonitor = inject("goToMonitor");
@@ -171,8 +210,51 @@ const goToWarning = inject("goToWarning");
 const goToKnowledgeBase = inject("goToKnowledgeBase");
 const goToReport = inject("goToReport");
 const openAIAssistant = inject("openAIAssistant");
-const goToAIAssistant = () => {
+const setActiveAITab = inject("setActiveAITab");
+
+const userInput = ref("");
+const voiceLoading = ref(false);
+
+const openAIModule = (moduleName) => {
+  // 设置 AI 小助手的活跃标签
+  if (setActiveAITab) {
+    setActiveAITab(moduleName);
+  }
+  // 打开 AI 小助手弹窗
   openAIAssistant();
+};
+
+const sendMessage = () => {
+  if (!userInput.value.trim()) {
+    ElMessage.warning("请输入您的问题");
+    return;
+  }
+  
+  // 根据用户输入智能判断要跳转的模块
+  const input = userInput.value.toLowerCase();
+  let targetModule = "suggestions";
+  
+  if (input.includes("调整") || input.includes("温度") || input.includes("湿度") || input.includes("通风")) {
+    targetModule = "adjustment";
+  } else if (input.includes("数据") || input.includes("统计") || input.includes("分析")) {
+    targetModule = "data-processing";
+  } else if (input.includes("预警") || input.includes("异常") || input.includes("兽医")) {
+    targetModule = "warning";
+  } else if (input.includes("报告") || input.includes("分析报告")) {
+    targetModule = "analysis";
+  }
+  
+  // 打开对应模块
+  openAIModule(targetModule);
+  userInput.value = "";
+};
+
+const startVoiceInput = () => {
+  voiceLoading.value = true;
+  ElMessage.info("语音输入功能开发中...");
+  setTimeout(() => {
+    voiceLoading.value = false;
+  }, 2000);
 };
 </script>
 
@@ -223,41 +305,134 @@ const goToAIAssistant = () => {
   animation-delay: 0.6s;
 }
 
-.ai-assistant-intro {
+/* AI 选项网格 */
+.ai-options-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 25px;
+}
+
+.ai-option-item {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 20px;
-  padding: 20px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  justify-content: center;
+  padding: 16px 12px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
   border-radius: 8px;
-  text-align: left;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  text-align: center;
 }
 
-.intro-icon {
-  font-size: 48px;
+.ai-option-item:hover {
+  background: linear-gradient(135deg, #2e7d32 0%, #52c41a 100%);
+  color: white;
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(46, 125, 50, 0.25);
+  border-color: #2e7d32;
+}
+
+.option-icon {
+  font-size: 28px;
+  margin-bottom: 8px;
   color: #2e7d32;
-  opacity: 0.8;
 }
 
-.ai-assistant-intro .intro-text {
+.ai-option-item:hover .option-icon {
+  color: white;
+  transform: scale(1.1);
+}
+
+.option-title {
+  font-weight: bold;
+  font-size: 14px;
+  margin-bottom: 4px;
+  color: #303133;
+}
+
+.ai-option-item:hover .option-title {
+  color: white;
+}
+
+.option-desc {
+  font-size: 12px;
+  color: #909399;
+  line-height: 1.4;
+}
+
+.ai-option-item:hover .option-desc {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* 人机交互区域 */
+.ai-interaction-area {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 16px;
+  border-left: 4px solid #2e7d32;
+}
+
+.interaction-header {
+  font-size: 14px;
+  font-weight: bold;
+  color: #303133;
+  margin-bottom: 12px;
+}
+
+.input-container {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.user-input {
   flex: 1;
 }
 
-.ai-assistant-intro .intro-text h4 {
-  margin: 0 0 10px 0;
-  color: #303133;
-  font-size: 16px;
+.input-actions {
+  display: flex;
+  gap: 0;
 }
 
-.ai-assistant-intro .intro-text p {
-  margin: 0 0 15px 0;
-  color: #606266;
-  font-size: 14px;
-  line-height: 1.6;
+.input-actions .el-button {
+  min-width: 80px;
 }
 
-.ai-assistant-intro .el-button {
-  margin-top: 10px;
+.interaction-hint {
+  font-size: 12px;
+  color: #909399;
+  line-height: 1.5;
+  padding: 8px 0;
+  border-top: 1px solid #e4e7eb;
+  margin-top: 8px;
+  padding-top: 8px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .ai-options-grid {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 10px;
+  }
+  
+  .ai-option-item {
+    padding: 12px 8px;
+  }
+  
+  .option-icon {
+    font-size: 24px;
+  }
+  
+  .input-container {
+    flex-direction: column;
+  }
+  
+  .input-actions {
+    flex-direction: row;
+  }
 }
 
 /* 组件特有样式 */
