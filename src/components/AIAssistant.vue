@@ -189,14 +189,17 @@
         </div>
       </el-tab-pane>
 
-      <!-- 畜牧数据处理标签页 -->
-      <el-tab-pane label="数据处理" name="data-processing">
-        <div class="data-processing-panel">
+      <!-- 数据洞察标签页 (合并数据处理和数据分析) -->
+      <el-tab-pane label="数据洞察" name="data-insights">
+        <div class="data-insights-panel">
           <div class="panel-header">
-            <h3><i class="fas fa-database"></i> 畜牧数据处理</h3>
+            <h3><i class="fas fa-chart-bar"></i> 数据洞察与分析</h3>
             <el-button-group>
               <el-button type="primary" size="small" @click="analyzeAllData">
                 <i class="fas fa-chart-line"></i> 全面分析
+              </el-button>
+              <el-button type="primary" size="small" @click="generateAnalysisReport" :loading="analysisLoading">
+                <i class="fas fa-sync"></i> 生成报告
               </el-button>
               <el-button type="primary" size="small" @click="exportData">
                 <i class="fas fa-download"></i> 导出数据
@@ -327,6 +330,15 @@
               </el-tab-pane>
             </el-tabs>
           </div>
+
+          <!-- AI 分析报告 -->
+          <div class="analysis-report-section mt-4">
+            <div class="report-header">
+              <h4><i class="fas fa-microchip"></i> AI 深度分析报告</h4>
+            </div>
+            <div v-if="analysisReport" class="analysis-report" v-html="analysisReport"></div>
+            <el-empty v-else description="点击'生成报告'按钮生成 AI 分析"></el-empty>
+          </div>
         </div>
       </el-tab-pane>
 
@@ -386,20 +398,7 @@
         </div>
       </el-tab-pane>
 
-      <!-- 数据分析标签页 -->
-      <el-tab-pane label="数据分析" name="analysis">
-        <div class="analysis-panel">
-          <div class="panel-header">
-            <h3><i class="fas fa-chart-line"></i> AI 数据分析报告</h3>
-            <el-button type="primary" size="small" @click="generateAnalysisReport" :loading="analysisLoading">
-              <i class="fas fa-sync"></i> 生成报告
-            </el-button>
-          </div>
 
-          <div v-if="analysisReport" class="analysis-report" v-html="analysisReport"></div>
-          <el-empty v-else description="点击按钮生成分析报告"></el-empty>
-        </div>
-      </el-tab-pane>
     </el-tabs>
 
     <!-- 轻度预警处理对话框 -->

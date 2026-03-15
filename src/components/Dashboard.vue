@@ -126,20 +126,15 @@
                 <div class="option-title">指数调整</div>
                 <div class="option-desc">快速调整温度、湿度等环境参数</div>
               </div>
-              <div class="ai-option-item" @click="openAIModule('data-processing')">
-                <div class="option-icon"><i class="fas fa-database"></i></div>
-                <div class="option-title">数据处理</div>
-                <div class="option-desc">查看和分析畜牧数据统计</div>
+              <div class="ai-option-item" @click="openAIModule('data-insights')">
+                <div class="option-icon"><i class="fas fa-chart-bar"></i></div>
+                <div class="option-title">数据洞察</div>
+                <div class="option-desc">查看数据统计和 AI 分析报告</div>
               </div>
               <div class="ai-option-item" @click="openAIModule('warning')">
                 <div class="option-icon"><i class="fas fa-bell"></i></div>
                 <div class="option-title">预警处理</div>
                 <div class="option-desc">处理环境和行为异常预警</div>
-              </div>
-              <div class="ai-option-item" @click="openAIModule('analysis')">
-                <div class="option-icon"><i class="fas fa-chart-line"></i></div>
-                <div class="option-title">数据分析</div>
-                <div class="option-desc">生成 AI 智能分析报告</div>
               </div>
             </div>
 
@@ -236,12 +231,10 @@ const sendMessage = () => {
   
   if (input.includes("调整") || input.includes("温度") || input.includes("湿度") || input.includes("通风")) {
     targetModule = "adjustment";
-  } else if (input.includes("数据") || input.includes("统计") || input.includes("分析")) {
-    targetModule = "data-processing";
+  } else if (input.includes("数据") || input.includes("统计") || input.includes("分析") || input.includes("报告")) {
+    targetModule = "data-insights";
   } else if (input.includes("预警") || input.includes("异常") || input.includes("兽医")) {
     targetModule = "warning";
-  } else if (input.includes("报告") || input.includes("分析报告")) {
-    targetModule = "analysis";
   }
   
   // 打开对应模块
