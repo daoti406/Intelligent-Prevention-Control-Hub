@@ -330,6 +330,210 @@
         </div>
       </el-tab-pane>
 
+      <!-- 预警处理标签页 -->
+      <el-tab-pane label="预警处理" name="warning-handling">
+        <div class="warning-handling-panel">
+          <div class="panel-header">
+            <h3><i class="fas fa-bell"></i> 预警处理中心</h3>
+            <el-button type="primary" size="small" @click="refreshWarnings">
+              <i class="fas fa-sync"></i> 刷新预警
+            </el-button>
+          </div>
+
+          <!-- 预警列表 -->
+          <el-table :data="warningsList" stripe style="width: 100%; margin-bottom: 20px;" v-if="warningsList.length > 0">
+            <el-table-column prop="location" label="位置" width="120"></el-table-column>
+            <el-table-column prop="type" label="预警类型" width="120">
+              <template #default="{ row }">
+                <el-tag :type="row.severity === 'high' ? 'danger' : 'warning'">
+                  {{ row.type }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="description" label="描述"></el-table-column>
+            <el-table-column prop="severity" label="严重程度" width="100">
+              <template #default="{ row }">
+                <el-tag :type="row.severity === 'high' ? 'danger' : 'warning'">
+                  {{ row.severity === 'high' ? '重度' : '轻度' }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="150" align="center">
+              <template #default="{ row }">
+                <el-button 
+                  v-if="row.severity === 'low'" 
+                  type="primary" 
+                  size="small"
+                  @click="handleLightWarning(row)"
+                >
+                  并调整
+                </el-button>
+                <el-button 
+                  v-else 
+                  type="danger" 
+                  size="small"
+                  @click="handleSevereWarning(row)"
+                >
+                  联系兽医
+                </el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+          <el-empty v-else description="暂无预警"></el-empty>
+
+          <!-- 轻度环境预警处理对话框 -->
+          <el-dialog 
+            v-model="lightWarningDialogVisible" 
+            title="环境预警处理"
+            width="50%"
+          >
+            <div v-if="currentWarning" class="warning-detail">
+              <el-descriptions :column="1" border class="mb-4">
+                <el-descriptions-item label="位置">{{ currentWarning.location }}</el-descriptions-item>
+                <el-descriptions-item label="预警类型">{{ currentWarning.type }}</el-descriptions-item>
+                <el-descriptions-item label="描述">{{ currentWarning.description }}</el-descriptions-item>
+              </el-descriptions>
+
+              <div class="adjustment-section">
+                <h4>快速调整环境参数</h4>
+                <el-row :gutter="20">
+                  <el-col :span="12">
+                    <div class="param-card">
+                      <label>湿度</label>
+                      <el-slider 
+                        v-model="lightWarningParams.humidity"
+                        :min="30"
+                        :max="80"
+                        :step="1"
+                      ></el-slider>
+                      <span class="param-value">{{ lightWarningParams.humidity }}%</span>
+                    </div>
+                  </el-col>
+                  <el-col :span="12">
+                    <div class="param-card">
+                      <label>温度</label>
+                      <el-slider 
+                        v-model="lightWarningParams.temperature"
+                        :min="15"
+                        :max="35"
+                        :step="0.5"
+                      ></el-slider>
+                      <span class="param-value">{{ lightWarningParams.temperature }}°C</span>
+                    </div>
+                  </el-col>
+                </el-row>
+                <el-row :gutter="20" style="margin-top: 15px;">
+                  <el-col :span="12">
+                    <div class="param-card">
+                      <label>通风</label>
+                      <el-slider 
+                        v-model="lightWarningParams.ventilation"
+                        :min="0"
+                        :max="100"
+                        :step="5"
+                      ></el-slider>
+                      <span class="param-value">{{ lightWarningParams.ventilation }}%</span>
+                    </div>
+                  </el-col>
+                  <el-col :span="12">
+                    <div class="param-card">
+                      <label>氨气浓度</label>
+                      <el-slider 
+                        v-model="lightWarningParams.ammonia"
+                        :min="0"
+                        :max="50"
+                        :step="1"
+                      ></el-slider>
+                      <span class="param-value">{{ lightWarningParams.ammonia }}ppm</span>
+                    </div>
+                  </el-col>
+                </el-row>
+              </div>
+            </div>
+            <template #footer>
+              <span class="dialog-footer">
+                <el-button @click="lightWarningDialogVisible = false">取消</el-button>
+                <el-button type="primary" @click="applyLightWarningAdjustment">应用调整</el-button>
+              </span>
+            </template>
+          </el-dialog>
+
+          <!-- 重度行为预警处理对话框 -->
+          <el-dialog 
+            v-model="severeWarningDialogVisible" 
+            title="重度行为预警处理"
+            width="60%"
+          >
+            <div v-if="currentWarning" class="warning-detail">
+              <el-descriptions :column="1" border class="mb-4">
+                <el-descriptions-item label="位置">{{ currentWarning.location }}</el-descriptions-item>
+                <el-descriptions-item label="预警类型">{{ currentWarning.type }}</el-descriptions-item>
+                <el-descriptions-item label="描述">{{ currentWarning.description }}</el-descriptions-item>
+              </el-descriptions>
+
+              <el-divider></el-divider>
+
+              <!-- 线上兽医处理 -->
+              <div class="vet-section">
+                <h4><i class="fas fa-video"></i> 线上兽医处理</h4>
+                <p class="section-desc">将预警情况数据发送给云端兽医进行远程诊断和指导</p>
+                <el-form :model="onlineVetForm" label-width="100px" class="mb-4">
+                  <el-form-item label="兽医选择">
+                    <el-select v-model="onlineVetForm.vetId" placeholder="选择兽医">
+                      <el-option 
+                        v-for="vet in onlineVets" 
+                        :key="vet.id" 
+                        :label="vet.name" 
+                        :value="vet.id"
+                      ></el-option>
+                    </el-select>
+                  </el-form-item>
+                  <el-form-item label="详细说明">
+                    <el-input 
+                      v-model="onlineVetForm.description" 
+                      type="textarea" 
+                      rows="3"
+                      placeholder="描述您需要的帮助"
+                    ></el-input>
+                  </el-form-item>
+                </el-form>
+                <el-button type="primary" @click="sendToOnlineVet">
+                  <i class="fas fa-paper-plane"></i> 发送给兽医
+                </el-button>
+              </div>
+
+              <el-divider></el-divider>
+
+              <!-- 线下兽医联系 -->
+              <div class="vet-section">
+                <h4><i class="fas fa-phone"></i> 线下兽医联系方式</h4>
+                <p class="section-desc">如果线上处理无法解决，可以联系本地兽医进行线下帮助</p>
+                <el-row :gutter="20">
+                  <el-col :span="12" v-for="vet in offlineVets" :key="vet.id">
+                    <el-card class="vet-card">
+                      <div class="vet-name">{{ vet.name }}</div>
+                      <div class="vet-info">
+                        <p><i class="fas fa-phone"></i> {{ vet.phone }}</p>
+                        <p><i class="fas fa-map-marker-alt"></i> {{ vet.address }}</p>
+                        <p><i class="fas fa-clock"></i> {{ vet.workHours }}</p>
+                      </div>
+                      <el-button type="primary" size="small" @click="contactOfflineVet(vet)" class="mt-2">
+                        联系兽医
+                      </el-button>
+                    </el-card>
+                  </el-col>
+                </el-row>
+              </div>
+            </div>
+            <template #footer>
+              <span class="dialog-footer">
+                <el-button @click="severeWarningDialogVisible = false">关闭</el-button>
+              </span>
+            </template>
+          </el-dialog>
+        </div>
+      </el-tab-pane>
+
       <!-- 数据分析标签页 -->
       <el-tab-pane label="数据分析" name="analysis">
         <div class="analysis-panel">
@@ -514,6 +718,78 @@ const cattleData = ref([
   }
 ]);
 
+// 预警处理数据
+const warningsList = ref([
+  {
+    id: 1,
+    location: "A 区猪舍 1 号",
+    type: "湿度异常",
+    description: "湿度过高（72%），建议开启通风",
+    severity: "low",
+    timestamp: "2025-01-11 15:45"
+  },
+  {
+    id: 2,
+    location: "B 区鸡舍 2 号",
+    type: "行为异常",
+    description: "检测到多只鸡只活动异常，可能患病",
+    severity: "high",
+    timestamp: "2025-01-11 15:30"
+  },
+  {
+    id: 3,
+    location: "C 区牛舍 1 号",
+    type: "采食异常",
+    description: "采食量下降 30%，需要关注",
+    severity: "high",
+    timestamp: "2025-01-11 15:15"
+  }
+]);
+
+// 预警处理对话框
+const lightWarningDialogVisible = ref(false);
+const severeWarningDialogVisible = ref(false);
+const currentWarning = ref(null);
+
+// 轻度预警参数
+const lightWarningParams = ref({
+  humidity: 65,
+  temperature: 25.6,
+  ventilation: 60,
+  ammonia: 15
+});
+
+// 线上兽医表单
+const onlineVetForm = ref({
+  vetId: "",
+  description: ""
+});
+
+// 线上兽医列表
+const onlineVets = ref([
+  { id: 1, name: "李兽医 (在线)" },
+  { id: 2, name: "王兽医 (在线)" },
+  { id: 3, name: "张兽医 (在线)" }
+]);
+
+// 线下兽医列表
+const offlineVets = ref([
+  {
+    id: 1,
+    name: "县城动物医院",
+    phone: "0571-88888888",
+    address: "杭州市西湖区文一路 100 号",
+    workHours: "08:00-22:00"
+  },
+  {
+    id: 2,
+    name: "镇防疫站",
+    phone: "0571-99999999",
+    address: "杭州市西湖区翠苑路 50 号",
+    workHours: "08:00-18:00"
+  }
+]);
+
 // 分析报告
 const analysisLoading = ref(false);
 const analysisReport = ref(null);
@@ -610,6 +886,55 @@ const generateAnalysisReport = () => {
 const viewDetails = (row) => {
   selectedDetail.value = row;
   detailsDialogVisible.value = true;
+};
+
+const refreshWarnings = () => {
+  ElMessage.info("正在刷新预警数据...");
+  setTimeout(() => {
+    ElMessage.success("预警已刷新");
+  }, 1000);
+};
+
+const handleLightWarning = (warning) => {
+  currentWarning.value = warning;
+  lightWarningParams.value = {
+    humidity: 65,
+    temperature: 25.6,
+    ventilation: 60,
+    ammonia: 15
+  };
+  lightWarningDialogVisible.value = true;
+};
+
+const handleSevereWarning = (warning) => {
+  currentWarning.value = warning;
+  onlineVetForm.value = { vetId: "", description: "" };
+  severeWarningDialogVisible.value = true;
+};
+
+const applyLightWarningAdjustment = () => {
+  ElMessage.success("环境参数已调整！");
+  adjustmentHistory.value.unshift({
+    timestamp: new Date().toLocaleString(),
+    parameter: "预警调整",
+    oldValue: "原值",
+    newValue: "已更新",
+    effect: "✓ 有效"
+  });
+  lightWarningDialogVisible.value = false;
+};
+
+const sendToOnlineVet = () => {
+  if (!onlineVetForm.value.vetId) {
+    ElMessage.warning("请选择兽医");
+    return;
+  }
+  ElMessage.success("已发送给兽医，请等待回复");
+  severeWarningDialogVisible.value = false;
+};
+
+const contactOfflineVet = (vet) => {
+  ElMessage.success(`已复制联系方式：${vet.phone}`);
 };
 </script>
 
@@ -839,6 +1164,105 @@ const viewDetails = (row) => {
   border-radius: 4px;
 }
 
+/* 预警处理样式 */
+.warning-handling-panel {
+  padding: 10px 0;
+}
+
+.warning-detail {
+  padding: 10px 0;
+}
+
+.adjustment-section {
+  margin: 20px 0;
+  padding: 15px;
+  background: #f8fafc;
+  border-radius: 4px;
+}
+
+.adjustment-section h4 {
+  margin: 0 0 15px 0;
+  color: #303133;
+}
+
+.param-card {
+  padding: 15px;
+  background: white;
+  border: 1px solid #f0f0f0;
+  border-radius: 4px;
+}
+
+.param-card label {
+  display: block;
+  margin-bottom: 10px;
+  color: #303133;
+  font-weight: bold;
+}
+
+.param-value {
+  display: block;
+  margin-top: 10px;
+  color: #2e7d32;
+  font-weight: bold;
+  text-align: center;
+}
+
+.vet-section {
+  margin: 20px 0;
+}
+
+.vet-section h4 {
+  margin: 0 0 10px 0;
+  color: #303133;
+}
+
+.vet-section i {
+  margin-right: 8px;
+  color: #2e7d32;
+}
+
+.section-desc {
+  margin: 0 0 15px 0;
+  color: #606266;
+  font-size: 13px;
+}
+
+.vet-card {
+  height: 100%;
+  border: 1px solid #f0f0f0;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.vet-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.vet-name {
+  font-size: 16px;
+  font-weight: bold;
+  color: #303133;
+  margin-bottom: 10px;
+}
+
+.vet-info {
+  font-size: 13px;
+  color: #606266;
+}
+
+.vet-info p {
+  margin: 5px 0;
+  display: flex;
+  align-items: center;
+}
+
+.vet-info i {
+  margin-right: 8px;
+  color: #2e7d32;
+  width: 16px;
+}
+
 /* 分析报告样式 */
 .analysis-panel {
   padding: 10px 0;
@@ -884,8 +1308,26 @@ const viewDetails = (row) => {
 }
 
 /* 工具类 */
+.mt-2 {
+  margin-top: 8px;
+}
+
 .mt-4 {
   margin-top: 16px;
+}
+
+.mb-2 {
+  margin-bottom: 8px;
+}
+
+.mb-4 {
+  margin-bottom: 16px;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
 /* 响应式 */
