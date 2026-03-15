@@ -1018,6 +1018,16 @@ body {
   margin: 0 4px;
 }
 
+/* 移除点击后的焦点背景色，防止区域持续变暗 */
+.el-menu-item:focus {
+  background-color: transparent !important;
+}
+
+.el-menu-item:hover {
+  background-color: rgba(0, 0, 0, 0.04) !important; 
+}
+
+
 .user-info {
   display: flex;
   align-items: center;
