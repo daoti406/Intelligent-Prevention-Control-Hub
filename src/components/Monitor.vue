@@ -117,7 +117,7 @@
         <el-card>
           <template #header>
             <div class="chart-header">
-              <i class="fas fa-cloud-sun"></i> 温湿度趋势分析
+              <i class="fas fa-temperature-high"></i> 温湿度趋势分析
             </div>
           </template>
           <div
@@ -131,7 +131,7 @@
         <el-card>
           <template #header>
             <div class="chart-header">
-              <i class="fas fa-running"></i> 畜禽活动量监测
+              <i class="fas fa-chart-line"></i> 畜禽活动量监测
             </div>
           </template>
           <div
@@ -146,13 +146,15 @@
 </template>
 
 <script setup>
-import { inject, onMounted, onUnmounted } from "vue";
+import { inject, onMounted, onUnmounted, watch } from "vue";
 import * as echarts from "echarts";
 const cameras = inject("cameras");
 const refreshSpinning = inject("refreshSpinning");
 const isFullscreen = inject("isFullscreen");
 const handleRefresh = inject("handleRefresh");
 const toggleFullscreen = inject("toggleFullscreen");
+const activeIndex = inject("activeIndex");
+
 let envTrendChart = null;
 let activityChart = null;
 
@@ -167,6 +169,19 @@ onUnmounted(() => {
   envTrendChart?.dispose();
   activityChart?.dispose();
 });
+
+// 监听路由变化，当切换到 monitor 页面时重新初始化图表
+watch(
+  () => activeIndex.value,
+  (newIndex) => {
+    if (newIndex === "monitor") {
+      setTimeout(() => {
+        initEnvTrendChart();
+        initActivityChart();
+      }, 100);
+    }
+  }
+);
 
 // 温湿度趋势图
 function initEnvTrendChart() {

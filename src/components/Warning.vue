@@ -113,7 +113,7 @@
 
 <script setup>
 //引进图表库，加生命周期
-import { inject,onMounted,onUnmounted } from "vue";
+import { inject,onMounted,onUnmounted, watch } from "vue";
 import*as echarts from "echarts";
 
 const warningList = inject("warningList");
@@ -122,6 +122,8 @@ const getWarningType = inject("getWarningType");
 const handleAllWarnings = inject("handleAllWarnings");
 const handleWarningDetail = inject("handleWarningDetail");
 const handleWarningConfirm = inject("handleWarningConfirm");
+const activeIndex = inject("activeIndex");
+
 //图表实例
 let warningTypeChart = null;
 let warningTrendChart = null;
@@ -133,9 +135,22 @@ onMounted(() => {
   }, 300); 
 })
 onUnmounted(() => {
-  warningTypeChart.dispose();
-  warningTrendChart.dispose();  
+  warningTypeChart?.dispose();
+  warningTrendChart?.dispose();  
 })
+
+// 监听路由变化，当切换到 warning 页面时重新初始化图表
+watch(
+  () => activeIndex.value,
+  (newIndex) => {
+    if (newIndex === "warning") {
+      setTimeout(() => {
+        initWarningTypeChart();
+        initWarningTrendChart();
+      }, 100);
+    }
+  }
+)
 // 1. 预警类型分布
 function initWarningTypeChart() {
   const dom = document.getElementById("warningTypeChart");

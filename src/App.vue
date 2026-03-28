@@ -1,20 +1,14 @@
-<template>
-  <AppHeader />
-  <main class="app-main">
-    <component :is="currentComponent" />
-  </main>
-  <AppFooter />
-  
-  <!-- AI 小助手弹窗 -->
-  <el-dialog 
-    v-model="aiAssistantDialogVisible" 
-    title="AI 小助手" 
-    width="90%"
-    :close-on-click-modal="false"
-    class="ai-assistant-dialog"
-  >
-    <AIAssistant />
-  </el-dialog>
+﻿<template>
+  <router-view v-slot="{ Component }">
+    <template v-if="isLoginRoute">
+      <component :is="Component" @login-success="onLoginSuccess" />
+    </template>
+    <template v-else>
+      <Layout :activeIndex="activeIndex" @select="handleSelect">
+        <component :is="Component" />
+      </Layout>
+    </template>
+  </router-view>
 </template>
 
 <script setup>
@@ -27,24 +21,34 @@ import {
   onMounted,
   onBeforeUnmount,
 } from "vue";
+import { useRouter, useRoute } from "vue-router";
 import { ElMessage, ElMessageBox } from "element-plus";
 import * as echarts from "echarts";
 
-import AppHeader from "./components/AppHeader.vue";
-import AppFooter from "./components/AppFooter.vue";
+import Layout from "./Layout.vue";
+import Login from "./components/Login.vue";
 import Dashboard from "./components/Dashboard.vue";
 import Monitor from "./components/Monitor.vue";
-import Data from "./components/Data.vue";
+import AISentinel from "./components/AISentinel.vue";
 import Warning from "./components/Warning.vue";
 import Knowledge from "./components/Knowledge.vue";
 import Profile from "./components/Profile.vue";
-import AIAssistant from "./components/AIAssistant.vue";
+import RanchManagement from "./components/RanchManagement.vue";
+
+const router = useRouter();
+const route = useRoute();
 const activeIndex = ref("dashboard");
 const username = ref("用户");
+const isLoginRoute = computed(() => route.path === "/login");
 const dateRange = ref([]);
 const searchKeyword = ref("");
 const refreshSpinning = ref(false);
 const isFullscreen = ref(false);
+
+const onLoginSuccess = (user) => {
+  username.value = user || "用户";
+  ElMessage.success("登录成功");
+};
 
 const notifications = ref([
   {
@@ -445,6 +449,10 @@ const fetchAIAnalysis = () => {
 // 所有方法（原样保留）
 const handleSelect = (key) => {
   activeIndex.value = key;
+  const path = key === "dashboard" ? "/dashboard" : `/${key}`;
+  if (router.currentRoute.value.path !== path) {
+    router.push(path);
+  }
   nextTick(initCharts);
 };
 const handleCommand = (command) => {
@@ -454,10 +462,16 @@ const handleCommand = (command) => {
       cancelButtonText: "取消",
       type: "warning",
     })
-      .then(() => ElMessage.success("退出成功"))
+      .then(() => {
+        localStorage.removeItem("authToken");
+        activeIndex.value = "dashboard";
+        router.push("/login");
+        ElMessage.success("退出成功，已返回登录页");
+      })
       .catch(() => {});
   } else if (command === "profile") {
     activeIndex.value = "profile";
+    router.push("/profile");
     nextTick(initCharts);
   } else if (command === "notifications") ElMessage.info("跳转到消息通知");
 };
@@ -466,7 +480,8 @@ const goToMonitor = () => {
   nextTick(initCharts);
 };
 const goToData = () => {
-  activeIndex.value = "data";
+  activeIndex.value = "ai-sentinel";
+  router.push("/ai-sentinel");
   nextTick(initCharts);
 };
 const goToWarning = () => {
@@ -577,10 +592,22 @@ const handleFullscreenChange = () => {
   }
 };
 
+const getChart = (id) => {
+  const el = document.getElementById(id);
+  if (!el) return null;
+  return echarts.getInstanceByDom(el) || echarts.init(el);
+};
+
+const resizeChart = (id) => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  echarts.getInstanceByDom(el)?.resize();
+};
+
 const initCharts = () => {
   if (activeIndex.value === "dashboard") {
     // 1. 健康趋势图
-    const healthChart = echarts.init(document.getElementById("healthChart"));
+    const healthChart = getChart("healthChart");
     if (healthChart) {
       healthChart.setOption({
         color: ["#52c41a", "#1890ff", "#faad14"],
@@ -616,7 +643,7 @@ const initCharts = () => {
     }
 
     // 2. 预警分布图表
-    const warningChart = echarts.init(document.getElementById("warningChart"));
+    const warningChart = getChart("warningChart");
     if (warningChart) {
       warningChart.setOption({
         color: ["#ff7875", "#ffc069", "#95de64", "#5cdbd3"],
@@ -668,7 +695,7 @@ const initCharts = () => {
     }
 
     // 3. 养殖规模图表
-    const scaleChart = echarts.init(document.getElementById("scaleChart"));
+    const scaleChart = getChart("scaleChart");
     if (scaleChart) {
       scaleChart.setOption({
         color: ["#1890ff", "#52c41a", "#faad14"],
@@ -718,44 +745,23 @@ const initCharts = () => {
 
 const handleResize = () => {
   if (activeIndex.value === "dashboard") {
-    echarts.getInstanceByDom(document.getElementById("healthChart"))?.resize();
-    echarts.getInstanceByDom(document.getElementById("warningChart"))?.resize();
-    echarts.getInstanceByDom(document.getElementById("scaleChart"))?.resize();
+    resizeChart("healthChart");
+    resizeChart("warningChart");
+    resizeChart("scaleChart");
   } else if (activeIndex.value === "monitor") {
-    echarts
-      .getInstanceByDom(document.getElementById("temperatureChart"))
-      ?.resize();
-    echarts
-      .getInstanceByDom(document.getElementById("humidityChart"))
-      ?.resize();
-  } else if (activeIndex.value === "data") {
-    echarts.getInstanceByDom(document.getElementById("diseaseChart"))?.resize();
+    resizeChart("temperatureChart");
+    resizeChart("humidityChart");
+  } else if (activeIndex.value === "ai-sentinel") {
+    resizeChart("diseaseChart");
   } else if (activeIndex.value === "warning") {
-    echarts
-      .getInstanceByDom(document.getElementById("warningTypeChart"))
-      ?.resize();
-    echarts
-      .getInstanceByDom(document.getElementById("warningTrendChart"))
-      ?.resize();
+    resizeChart("warningTypeChart");
+    resizeChart("warningTrendChart");
   }
 };
 
 const dialogVisible = ref(false);
 const selectedKnowledge = ref(null);
-const aiAssistantDialogVisible = ref(false);
 const activeAITab = ref("suggestions");
-
-const currentComponent = computed(() => {
-  const map = {
-    dashboard: Dashboard,
-    monitor: Monitor,
-    data: Data,
-    warning: Warning,
-    knowledge: Knowledge,
-    profile: Profile,
-  };
-  return map[activeIndex.value] || Dashboard;
-});
 
 // 提供所有数据和方法给子组件
 provide("activeIndex", activeIndex);
@@ -798,14 +804,13 @@ provide("handleRefresh", handleRefresh);
 provide("toggleFullscreen", toggleFullscreen);
 provide("fetchAIAnalysis", fetchAIAnalysis);
 provide("exportData", () => ElMessage.info("导出功能开发中"));
-provide("aiAssistantDialogVisible", aiAssistantDialogVisible);
-provide("openAIAssistant", () => (aiAssistantDialogVisible.value = true));
-provide("closeAIAssistant", () => (aiAssistantDialogVisible.value = false));
 provide("activeAITab", activeAITab);
 provide("setActiveAITab", (val) => (activeAITab.value = val));
 
 onMounted(() => {
-  initCharts();
+  if (!isLoginRoute.value) {
+    nextTick(initCharts);
+  }
   window.addEventListener("resize", handleResize);
   document.addEventListener("fullscreenchange", handleFullscreenChange);
   document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
@@ -822,7 +827,18 @@ onBeforeUnmount(() => {
   document.removeEventListener("MSFullscreenChange", handleFullscreenChange);
 });
 
-watch(activeIndex, () => nextTick(initCharts));
+watch(
+  () => route.path,
+  (newPath) => {
+    const key = newPath.replace(/^\//, "");
+    const available = ["dashboard", "monitor", "ai-sentinel", "warning", "knowledge", "ranch", "profile"];
+    activeIndex.value = available.includes(key) ? key : "dashboard";
+    if (newPath !== "/login") {
+      nextTick(initCharts);
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <style>
@@ -903,6 +919,48 @@ body {
   align-items: center;
   height: 64px;
 }
+
+/* 新增布局：头部 + 侧边栏 + 内容区域 */
+.app-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.app-body {
+  flex: 1;
+  display: flex;
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  background-color: var(--background-color);
+}
+.app-sidebar {
+  width: 220px;
+  min-width: 220px;
+  background: #ffffff;
+  border-right: 1px solid #eaeaea;
+  padding: 16px 14px;
+  box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.04);
+}
+.app-sidebar h3 {
+  margin: 0 0 12px;
+  color: var(--primary-dark);
+  font-size: 16px;
+  font-weight: 600;
+}
+.sidebar-menu {
+  border-right: none;
+}
+.app-main {
+  flex: 1;
+  min-height: calc(100vh - 130px);
+  padding: 18px;
+  background-color: var(--background-color);
+}
+.app-footer {
+  margin-top: auto;
+}
+
 /* ... 其余全局样式请从原HTML完整复制 ... */
 :root {
   --primary-color: #2e7d32;
