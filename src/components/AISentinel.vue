@@ -21,9 +21,19 @@
           <template #header>
             <div class="panel-title">
               <span>AI 结论摘要</span>
-              <el-button type="primary" link @click="fetchAIAnalysis" :loading="aiLoading">
-                生成最新研判
-              </el-button>
+              <div class="analysis-actions">
+                <el-button
+                  type="success"
+                  link
+                  :disabled="!analysisSpeechText"
+                  @click="toggleAnalysisSpeech"
+                >
+                  {{ isSpeaking ? "停止播放" : "语音播放" }}
+                </el-button>
+                <el-button type="primary" link @click="fetchAIAnalysis" :loading="aiLoading">
+                  生成最新研判
+                </el-button>
+              </div>
             </div>
           </template>
           <div v-if="aiAnalysisResult" class="analysis-result" v-html="aiAnalysisResult"></div>
@@ -38,50 +48,142 @@
     <el-card shadow="hover" class="workspace-card">
       <template #header>
         <div class="panel-title">
-          <span>AI 哨兵工作台</span>
-          <span class="workspace-note">已整合原首页 AI 助手与数据分析能力</span>
+          <span>智栏卫士工作台</span>
         </div>
       </template>
       <div class="ai-assistant-container">
         <el-tabs v-model="activeTab" class="ai-tabs">
-          <el-tab-pane label="智能建议" name="suggestions">
-            <div class="suggestions-panel">
+          <el-tab-pane label="AI对话" name="suggestions">
+            <div class="chat-panel">
               <div class="panel-header">
-                <h3><i class="fas fa-lightbulb"></i> AI 智能建议</h3>
-                <el-button type="primary" size="small" @click="generateNewSuggestions" :loading="suggestionsLoading">
-                  <i class="fas fa-sync"></i> 重新分析
+                <h3><i class="fas fa-comments"></i> 智栏卫士 AI 对话</h3>
+                <div class="chat-header-actions">
+                  <el-switch
+                    v-model="voiceReplyEnabled"
+                    inline-prompt
+                    active-text="语音回复"
+                    inactive-text="静音"
+                  />
+                  <el-button size="small" @click="resetChatMessages">清空对话</el-button>
+                </div>
+              </div>
+
+              <div class="chat-quick-prompts">
+                <el-button
+                  v-for="prompt in quickPrompts"
+                  :key="prompt"
+                  size="small"
+                  plain
+                  @click="sendChatMessage(prompt)"
+                >
+                  {{ prompt }}
                 </el-button>
               </div>
 
-              <el-timeline v-if="suggestions.length > 0">
-                <el-timeline-item
-                  v-for="(suggestion, index) in suggestions"
-                  :key="index"
-                  :timestamp="suggestion.timestamp"
-                  :type="suggestion.type"
+              <div ref="chatScrollRef" class="chat-messages">
+                <div
+                  v-for="message in chatMessages"
+                  :key="message.id"
+                  class="chat-message"
+                  :class="message.role"
                 >
-                  <el-card class="suggestion-card">
-                    <div class="suggestion-header">
-                      <h4>{{ suggestion.title }}</h4>
-                      <el-tag :type="getSuggestionTagType(suggestion.priority)">{{ suggestion.priority }}</el-tag>
+                  <div class="chat-avatar">
+                    <i :class="message.role === 'assistant' ? 'fas fa-shield-halved' : 'fas fa-user'"></i>
+                  </div>
+                  <div class="chat-bubble">
+                    <div class="chat-meta">
+                      <span>{{ message.role === "assistant" ? "智栏卫士" : "你" }}</span>
+                      <span>{{ message.time }}</span>
                     </div>
-                    <p class="suggestion-content">{{ suggestion.content }}</p>
-                    <div class="suggestion-footer">
-                      <span class="location"><i class="fas fa-map-marker-alt"></i> {{ suggestion.location }}</span>
-                      <el-button link size="small" @click="handleSuggestionAction(suggestion)">查看详情 →</el-button>
-                    </div>
-                  </el-card>
-                </el-timeline-item>
-              </el-timeline>
-              <el-empty v-else description="暂无建议"></el-empty>
+                    <div class="chat-text">{{ message.content }}</div>
+                  </div>
+                </div>
+
+                <div v-if="chatLoading" class="chat-message assistant">
+                  <div class="chat-avatar">
+                    <i class="fas fa-shield-halved"></i>
+                  </div>
+                  <div class="chat-bubble typing">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="chat-toolbar">
+                <el-input
+                  v-model="chatInput"
+                  type="textarea"
+                  :rows="3"
+                  resize="none"
+                  placeholder="可以直接询问：哪里风险最高、某个区域为什么异常、该如何处理等"
+                  @keydown.enter.exact.prevent="submitChatInput"
+                />
+                <div class="chat-actions">
+                  <div class="chat-hint">
+                    <span v-if="isListening" class="listening-indicator">正在语音识别...</span>
+                    <span v-else-if="!speechRecognitionSupported" class="chat-muted">当前浏览器不支持语音输入</span>
+                    <span v-else class="chat-muted">支持文字对话、普通话和方言语音输入</span>
+                  </div>
+                  <div class="chat-action-buttons">
+                    <el-select
+                      v-model="voiceInputMode"
+                      size="small"
+                      class="voice-mode-select"
+                      :disabled="isListening || !speechRecognitionSupported"
+                    >
+                      <el-option
+                        v-for="option in voiceInputModes"
+                        :key="option.value"
+                        :label="option.label"
+                        :value="option.value"
+                      />
+                    </el-select>
+                    <el-button
+                      :type="isListening ? 'danger' : 'success'"
+                      plain
+                      class="voice-input-button"
+                      @click="toggleVoiceInput"
+                      :disabled="!speechRecognitionSupported"
+                    >
+                      {{ isListening ? "停止收音" : "语音输入" }}
+                    </el-button>
+                    <el-button class="voice-input-button" :loading="chatLoading" @click="submitChatInput">
+                      发送给 AI
+                    </el-button>
+                  </div>
+                </div>
+              </div>
             </div>
           </el-tab-pane>
 
           <el-tab-pane label="指数调整" name="adjustment">
             <div class="adjustment-panel">
               <div class="panel-header">
-                <h3><i class="fas fa-sliders-h"></i> 环境指数调整</h3>
+                <h3><i class="fas fa-sliders-h"></i> 分区域环境指数调整</h3>
                 <el-button type="primary" size="small" @click="applyAllAdjustments">应用所有调整</el-button>
+              </div>
+
+              <div class="zone-toolbar">
+                <div class="zone-toolbar-copy">
+                  <div class="zone-toolbar-title">选择调整区域</div>
+                  <div class="zone-toolbar-desc">可分别调节各棚舍的温度、湿度、通风和光照指数。</div>
+                </div>
+                <el-radio-group v-model="selectedAdjustmentZone" size="small" class="zone-switcher">
+                  <el-radio-button
+                    v-for="zone in adjustmentZones"
+                    :key="zone.key"
+                    :label="zone.key"
+                  >
+                    {{ zone.label }}
+                  </el-radio-button>
+                </el-radio-group>
+              </div>
+
+              <div class="zone-overview">
+                <div class="zone-badge">{{ selectedAdjustmentZone }}</div>
+                <div class="zone-meta">{{ currentZoneMeta }}</div>
               </div>
 
               <el-row :gutter="20">
@@ -91,7 +193,6 @@
                     <div class="adjustment-content">
                       <div class="current-value"><span class="label">当前值</span><span class="value">{{ environmentParams.temperature }}°C</span></div>
                       <el-slider v-model="environmentParams.temperature" :min="15" :max="35" :step="0.5" :marks="temperatureMarks" />
-                      <div class="target-value"><span class="label">目标值</span><span class="value">{{ environmentParams.temperature }}°C</span></div>
                     </div>
                   </el-card>
                 </el-col>
@@ -101,7 +202,6 @@
                     <div class="adjustment-content">
                       <div class="current-value"><span class="label">当前值</span><span class="value">{{ environmentParams.humidity }}%</span></div>
                       <el-slider v-model="environmentParams.humidity" :min="30" :max="80" :step="1" :marks="humidityMarks" />
-                      <div class="target-value"><span class="label">目标值</span><span class="value">{{ environmentParams.humidity }}%</span></div>
                     </div>
                   </el-card>
                 </el-col>
@@ -111,7 +211,6 @@
                     <div class="adjustment-content">
                       <div class="current-value"><span class="label">当前值</span><span class="value">{{ environmentParams.ventilation }}%</span></div>
                       <el-slider v-model="environmentParams.ventilation" :min="0" :max="100" :step="5" :marks="ventilationMarks" />
-                      <div class="target-value"><span class="label">目标值</span><span class="value">{{ environmentParams.ventilation }}%</span></div>
                     </div>
                   </el-card>
                 </el-col>
@@ -121,7 +220,6 @@
                     <div class="adjustment-content">
                       <div class="current-value"><span class="label">当前值</span><span class="value">{{ environmentParams.lighting }} Lux</span></div>
                       <el-slider v-model="environmentParams.lighting" :min="0" :max="500" :step="10" :marks="lightingMarks" />
-                      <div class="target-value"><span class="label">目标值</span><span class="value">{{ environmentParams.lighting }} Lux</span></div>
                     </div>
                   </el-card>
                 </el-col>
@@ -131,6 +229,7 @@
                 <h4><i class="fas fa-history"></i> 最近调整记录</h4>
                 <el-table :data="adjustmentHistory" stripe>
                   <el-table-column prop="timestamp" label="调整时间" width="180" />
+                  <el-table-column prop="zone" label="调整区域" width="140" />
                   <el-table-column prop="parameter" label="参数" />
                   <el-table-column prop="oldValue" label="原值" />
                   <el-table-column prop="newValue" label="新值" />
@@ -146,7 +245,6 @@
                 <h3><i class="fas fa-chart-bar"></i> 数据洞察与分析</h3>
                 <el-button-group>
                   <el-button type="primary" size="small" @click="analyzeAllData"><i class="fas fa-chart-line"></i> 全面分析</el-button>
-                  <el-button type="primary" size="small" @click="generateAnalysisReport" :loading="analysisLoading"><i class="fas fa-sync"></i> 生成报告</el-button>
                   <el-button type="primary" size="small" @click="exportData"><i class="fas fa-download"></i> 导出数据</el-button>
                 </el-button-group>
               </div>
@@ -170,12 +268,6 @@
                     <el-table :data="cattleData" stripe><el-table-column prop="location" label="位置" width="120" /><el-table-column prop="count" label="数量" /><el-table-column prop="healthRate" label="健康率" /><el-table-column prop="milkProduction" label="产奶量" /><el-table-column prop="feedIntake" label="采食量" /><el-table-column prop="status" label="状态"><template #default="{ row }"><el-tag :type="row.status === '正常' ? 'success' : 'warning'">{{ row.status }}</el-tag></template></el-table-column><el-table-column label="操作" width="100"><template #default="{ row }"><el-button link size="small" @click="viewDetails(row)">详情</el-button></template></el-table-column></el-table>
                   </el-tab-pane>
                 </el-tabs>
-              </div>
-
-              <div class="analysis-report-section mt-4">
-                <div class="report-header"><h4><i class="fas fa-microchip"></i> AI 深度分析报告</h4></div>
-                <div v-if="analysisReport" class="analysis-report" v-html="analysisReport"></div>
-                <el-empty v-else description="点击“生成报告”按钮生成 AI 分析"></el-empty>
               </div>
             </div>
           </el-tab-pane>
@@ -241,20 +333,6 @@
       </el-col>
     </el-row>
 
-    <el-row :gutter="18" class="analysis-grid">
-      <el-col :xs="24">
-        <el-card shadow="hover" class="panel-card">
-          <template #header>
-            <div class="panel-title">
-              <span>健康趋势图</span>
-              <el-tag type="success" effect="plain">实时分析</el-tag>
-            </div>
-          </template>
-          <div id="diseaseChart" class="chart-block"></div>
-        </el-card>
-      </el-col>
-    </el-row>
-
     <el-dialog v-model="lightWarningDialogVisible" title="环境参数快速调整" width="400px" append-to-body>
       <div v-if="currentWarning" class="adjustment-quick-form">
         <div class="quick-info mb-4"><el-tag size="small" type="warning">{{ currentWarning.location }}</el-tag><span class="ml-2">{{ currentWarning.type }}</span></div>
@@ -315,7 +393,6 @@
 
 <script setup>
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import * as echarts from "echarts";
 import { ElMessage } from "element-plus";
 
 const dataStats = inject("dataStats");
@@ -330,11 +407,14 @@ const activeTab = computed({
   set: (val) => (activeAITab.value = val),
 });
 
-const diseaseChart = ref(null);
 const dataTableTab = ref("pig");
-const suggestionsLoading = ref(false);
-const analysisLoading = ref(false);
-const analysisReport = ref(null);
+const chatScrollRef = ref(null);
+const chatInput = ref("");
+const chatLoading = ref(false);
+const voiceReplyEnabled = ref(true);
+const isListening = ref(false);
+const speechRecognitionSupported = ref(false);
+const voiceInputMode = ref("mandarin");
 const detailsDialogVisible = ref(false);
 const selectedDetail = ref(null);
 const lightWarningDialogVisible = ref(false);
@@ -342,6 +422,15 @@ const severeWarningDialogVisible = ref(false);
 const currentWarning = ref(null);
 const selectedVetId = ref("");
 const vetNote = ref("");
+const isSpeaking = ref(false);
+let analysisUtterance = null;
+let chatRecognition = null;
+let messageId = 3;
+
+const voiceInputModes = [
+  { value: "mandarin", label: "普通话" },
+  { value: "dialect", label: "方言模式" },
+];
 
 const sentinelStats = computed(() => [
   {
@@ -381,30 +470,27 @@ const predictionTable = ref([
   { region: "全场", focus: "未来一周预警总量保持可控", time: "7天", level: "低" },
 ]);
 
-const suggestions = ref([
+const quickPrompts = [
+  "今天哪个区域风险最高？",
+  "A区猪舍为什么会报警？",
+  "给我一份当前巡检建议",
+  "如果湿度过高应该怎么处理？",
+];
+
+const chatMessages = ref([
   {
-    title: "环境优化建议",
-    content: "当前 A 区猪舍湿度偏高（72%），建议开启通风系统 15 分钟，以降低氨气浓度，预防呼吸道疾病。",
-    timestamp: "实时分析",
-    type: "primary",
-    location: "A 区猪舍 1 号",
-    priority: "高",
+    id: 1,
+    role: "assistant",
+    content:
+      "你好，我是智栏卫士。你可以直接问我养殖风险、环境调节、预警原因、巡检建议，后续也可以接入外部大模型 API。",
+    time: "刚刚",
   },
   {
-    title: "防疫计划提醒",
-    content: "B 区鸡舍 2 号棚即将进入下一阶段疫苗接种期（预计 2 天后），请提前准备相关防疫物资。",
-    timestamp: "策略提醒",
-    type: "warning",
-    location: "B 区鸡舍 2 号",
-    priority: "中",
-  },
-  {
-    title: "饲喂效率分析",
-    content: "通过近 7 天数据分析，C 区牛舍的进食效率提升了 5%，建议维持当前的饲料配比方案。",
-    timestamp: "生产分析",
-    type: "success",
-    location: "C 区牛舍 1 号",
-    priority: "低",
+    id: 2,
+    role: "assistant",
+    content:
+      "当前我已经接入了页面里的监测统计、预警记录和分区指数数据，可以先基于这些内容给你即时建议。",
+    time: "刚刚",
   },
 ]);
 
@@ -413,17 +499,41 @@ const humidityMarks = { 30: "30%", 55: "55%", 80: "80%" };
 const ventilationMarks = { 0: "0%", 50: "50%", 100: "100%" };
 const lightingMarks = { 0: "0", 250: "250", 500: "500" };
 
-const environmentParams = ref({
-  temperature: 25.6,
-  humidity: 65,
-  ventilation: 60,
-  lighting: 250,
+const adjustmentZones = [
+  { key: "A区猪舍", label: "A区猪舍", meta: "保育猪重点区，夜间保温优先" },
+  { key: "B区鸡舍", label: "B区鸡舍", meta: "产蛋鸡舍，湿度与光照联动" },
+  { key: "C区牛舍", label: "C区牛舍", meta: "泌乳牛舍，通风与采食节律优先" },
+];
+
+const selectedAdjustmentZone = ref("A区猪舍");
+
+const environmentZones = ref({
+  A区猪舍: { temperature: 25.6, humidity: 65, ventilation: 60, lighting: 250 },
+  B区鸡舍: { temperature: 24.2, humidity: 58, ventilation: 50, lighting: 320 },
+  C区牛舍: { temperature: 22.8, humidity: 54, ventilation: 68, lighting: 220 },
+});
+
+const environmentParams = computed(
+  () => environmentZones.value[selectedAdjustmentZone.value],
+);
+
+const currentZoneMeta = computed(
+  () =>
+    adjustmentZones.find((zone) => zone.key === selectedAdjustmentZone.value)?.meta ||
+    "当前区域指数可单独微调",
+);
+
+const analysisSpeechText = computed(() => {
+  if (!aiAnalysisResult?.value) return "";
+  const temp = document.createElement("div");
+  temp.innerHTML = aiAnalysisResult.value;
+  return (temp.textContent || temp.innerText || "").replace(/\s+/g, " ").trim();
 });
 
 const adjustmentHistory = ref([
-  { timestamp: "2025-01-11 14:30", parameter: "温度", oldValue: "24.5°C", newValue: "25.6°C", effect: "✓ 有效" },
-  { timestamp: "2025-01-11 12:15", parameter: "湿度", oldValue: "72%", newValue: "65%", effect: "✓ 有效" },
-  { timestamp: "2025-01-11 10:00", parameter: "通风", oldValue: "50%", newValue: "60%", effect: "✓ 有效" },
+  { timestamp: "2025-01-11 14:30", zone: "A区猪舍", parameter: "温度", oldValue: "24.5°C", newValue: "25.6°C", effect: "✓ 有效" },
+  { timestamp: "2025-01-11 12:15", zone: "B区鸡舍", parameter: "湿度", oldValue: "62%", newValue: "58%", effect: "✓ 有效" },
+  { timestamp: "2025-01-11 10:00", zone: "C区牛舍", parameter: "通风", oldValue: "55%", newValue: "68%", effect: "✓ 有效" },
 ]);
 
 const livestockStats = ref({
@@ -458,113 +568,170 @@ const offlineVets = ref([
   { id: 2, name: "王兽医 (私人执业)", phone: "138-xxxx-xxxx", address: "上城区南星街道" },
 ]);
 
-const initDiseaseChart = () => {
-  const dom = document.getElementById("diseaseChart");
-  if (!dom) return;
-
-  diseaseChart.value?.dispose();
-  diseaseChart.value = echarts.init(dom);
-  diseaseChart.value.setOption({
-    color: ["#2e7d32", "#f59e0b", "#ef4444"],
-    tooltip: { trigger: "axis" },
-    legend: { top: 0, data: ["健康指数", "异常事件", "AI 预警热度"] },
-    grid: { left: "3%", right: "4%", bottom: "3%", containLabel: true },
-    xAxis: {
-      type: "category",
-      data: ["周一", "周二", "周三", "周四", "周五", "周六", "周日"],
-      axisLine: { lineStyle: { color: "#d9e2d0" } },
-    },
-    yAxis: [
-      {
-        type: "value",
-        name: "指数",
-        min: 0,
-        max: 100,
-        splitLine: { lineStyle: { color: "#edf3eb" } },
-      },
-      {
-        type: "value",
-        name: "事件数",
-        min: 0,
-        max: 40,
-      },
-    ],
-    series: [
-      {
-        name: "健康指数",
-        type: "line",
-        smooth: true,
-        data: [92, 93, 95, 94, 96, 97, 96],
-        areaStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: "rgba(46,125,50,0.28)" },
-            { offset: 1, color: "rgba(46,125,50,0.02)" },
-          ]),
-        },
-      },
-      {
-        name: "异常事件",
-        type: "bar",
-        yAxisIndex: 1,
-        barWidth: 18,
-        data: [18, 15, 12, 16, 10, 8, 9],
-      },
-      {
-        name: "AI 预警热度",
-        type: "line",
-        smooth: true,
-        data: [48, 52, 57, 62, 58, 54, 50],
-      },
-    ],
+const appendChatMessage = (role, content) => {
+  chatMessages.value.push({
+    id: messageId++,
+    role,
+    content,
+    time: new Date().toLocaleTimeString("zh-CN", {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
   });
 };
 
-const initCharts = () => {
+const scrollChatToBottom = () => {
   nextTick(() => {
-    initDiseaseChart();
+    const el = chatScrollRef.value;
+    if (el) {
+      el.scrollTop = el.scrollHeight;
+    }
   });
 };
 
-const resizeCharts = () => {
-  diseaseChart.value?.resize();
+const buildMockAIReply = (question) => {
+  const lowerQuestion = question.toLowerCase();
+
+  if (lowerQuestion.includes("风险") || lowerQuestion.includes("报警")) {
+    return "当前风险最高的是 B区鸡舍，主要因为行为异常与采食下降同时出现。建议优先复核摄像监测、检查通风与密度，并安排现场巡检。";
+  }
+
+  if (lowerQuestion.includes("湿度")) {
+    return "如果湿度过高，建议先提高对应区域通风强度，再检查饮水线和地面潮湿源。A区猪舍当前湿度偏高，优先建议短时增强通风并复测氨气浓度。";
+  }
+
+  if (lowerQuestion.includes("巡检")) {
+    return "当前建议巡检顺序为：B区鸡舍、A区猪舍、C区牛舍。重点关注鸡舍聚堆行为、猪舍湿度和牛舍采食节律。";
+  }
+
+  if (lowerQuestion.includes("A区")) {
+    return "A区猪舍当前主要问题是湿度与温度波动叠加，建议保持温度稳定在 25 至 26 度，并将通风逐步提升到 60% 左右观察 15 分钟。";
+  }
+
+  return "我已经收到你的问题。当前前端版本会先基于页面已有监测数据给出即时回答，后续接入大模型 API 后，这里可以直接替换成真实的智能问答结果。";
 };
 
-const getSuggestionTagType = (priority) => {
-  const map = { 高: "danger", 中: "warning", 低: "info" };
-  return map[priority] || "info";
+const speakReply = (text) => {
+  if (!voiceReplyEnabled.value || !("speechSynthesis" in window) || !text) return;
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = "zh-CN";
+  utterance.rate = 1;
+  utterance.pitch = 1;
+  window.speechSynthesis.speak(utterance);
 };
 
-const generateNewSuggestions = () => {
-  suggestionsLoading.value = true;
-  ElMessage.info("正在重新分析数据...");
-  setTimeout(() => {
-    suggestions.value = [
-      {
-        title: "新增建议：饲料配比优化",
-        content: "根据最新采食数据，建议调整 A 区的蛋白质含量从 16% 提升至 18%，以提高日增重。",
-        timestamp: "实时分析",
-        type: "primary",
-        location: "A 区猪舍",
-        priority: "高",
-      },
-      ...suggestions.value.slice(0, 2),
-    ];
-    suggestionsLoading.value = false;
-    ElMessage.success("建议已更新");
-  }, 1500);
+const sendChatMessage = async (presetMessage) => {
+  const content = (presetMessage ?? chatInput.value).trim();
+  if (!content || chatLoading.value) return;
+
+  appendChatMessage("user", content);
+  chatInput.value = "";
+  chatLoading.value = true;
+  scrollChatToBottom();
+
+  try {
+    await new Promise((resolve) => setTimeout(resolve, 900));
+    const reply = buildMockAIReply(content);
+    appendChatMessage("assistant", reply);
+    scrollChatToBottom();
+    speakReply(reply);
+  } finally {
+    chatLoading.value = false;
+  }
 };
 
-const handleSuggestionAction = (suggestion) => {
-  ElMessage.info(`已记录建议：${suggestion.title}`);
+const submitChatInput = () => {
+  sendChatMessage();
+};
+
+const resetChatMessages = () => {
+  chatMessages.value = [
+    {
+      id: 1,
+      role: "assistant",
+      content:
+        "你好，我是智栏卫士。你可以直接问我养殖风险、环境调节、预警原因、巡检建议，后续也可以接入外部大模型 API。",
+      time: "刚刚",
+    },
+  ];
+  chatInput.value = "";
+};
+
+const toggleVoiceInput = () => {
+  if (!speechRecognitionSupported.value || !chatRecognition) {
+    ElMessage.warning("当前浏览器不支持语音输入");
+    return;
+  }
+
+  if (isListening.value) {
+    chatRecognition.stop();
+    return;
+  }
+
+  chatRecognition.lang =
+    voiceInputMode.value === "dialect" ? "zh-HK" : "zh-CN";
+  chatRecognition.start();
+};
+
+const stopAnalysisSpeech = () => {
+  if ("speechSynthesis" in window) {
+    window.speechSynthesis.cancel();
+  }
+  isSpeaking.value = false;
+  analysisUtterance = null;
+};
+
+const toggleAnalysisSpeech = () => {
+  if (!analysisSpeechText.value) {
+    ElMessage.warning("当前没有可播报的 AI 结论摘要");
+    return;
+  }
+
+  if (!("speechSynthesis" in window)) {
+    ElMessage.warning("当前浏览器不支持语音播放");
+    return;
+  }
+
+  if (isSpeaking.value) {
+    stopAnalysisSpeech();
+    return;
+  }
+
+  stopAnalysisSpeech();
+  analysisUtterance = new SpeechSynthesisUtterance(analysisSpeechText.value);
+  analysisUtterance.lang = "zh-CN";
+  analysisUtterance.rate = 1;
+  analysisUtterance.pitch = 1;
+  analysisUtterance.onend = () => {
+    isSpeaking.value = false;
+    analysisUtterance = null;
+  };
+  analysisUtterance.onerror = () => {
+    isSpeaking.value = false;
+    analysisUtterance = null;
+    ElMessage.warning("语音播放失败，请重试");
+  };
+
+  isSpeaking.value = true;
+  window.speechSynthesis.speak(analysisUtterance);
+};
+
+const resolveZoneByLocation = (location = "") => {
+  if (location.includes("A区")) return "A区猪舍";
+  if (location.includes("B区")) return "B区鸡舍";
+  if (location.includes("C区")) return "C区牛舍";
+  return selectedAdjustmentZone.value;
 };
 
 const applyAllAdjustments = () => {
-  ElMessage.success("所有调整已应用！");
+  ElMessage.success(`${selectedAdjustmentZone.value} 的环境指数已应用`);
   adjustmentHistory.value.unshift({
     timestamp: new Date().toLocaleString(),
+    zone: selectedAdjustmentZone.value,
     parameter: "批量调整",
     oldValue: "多项",
-    newValue: "已更新",
+    newValue: "区域目标已更新",
     effect: "✓ 有效",
   });
 };
@@ -576,49 +743,19 @@ const analyzeAllData = () => {
   }, 1500);
 };
 
-const generateAnalysisReport = () => {
-  analysisLoading.value = true;
-  setTimeout(() => {
-    analysisReport.value = `
-      <div class="ai-report">
-        <div class="ai-report-header">
-          <h4 style="color: #2e7d32; margin-top: 0;"><i class="fas fa-microchip"></i> AI 智能分析报告</h4>
-          <p style="font-size: 12px; color: #999;">分析时间：${new Date().toLocaleString()}</p>
-        </div>
-        <div class="ai-report-section">
-          <h5 style="color: #e6a23c;">核心发现</h5>
-          <p>本周整体健康率达到 <strong>97.8%</strong>，较上周提升 <strong>2.3%</strong>，其中 A 区猪舍表现最佳。</p>
-        </div>
-        <div class="ai-report-section">
-          <h5 style="color: #409eff;">关键指标分析</h5>
-          <ul style="padding-left: 20px; line-height: 1.8;">
-            <li><strong>日增重：</strong>平均 850g/天，同比增长 1.2%</li>
-            <li><strong>采食量：</strong>整体保持稳定，无异常波动</li>
-            <li><strong>环境参数：</strong>温度、湿度、通风均在最优范围内</li>
-          </ul>
-        </div>
-        <div class="ai-report-section">
-          <h5 style="color: #67c23a;">优化建议</h5>
-          <p>建议继续维持当前饲养管理方案，同时重点关注 B 区与 C 区的异常趋势。</p>
-        </div>
-      </div>
-    `;
-    analysisLoading.value = false;
-    ElMessage.success("报告已生成");
-  }, 1500);
-};
-
 const refreshWarnings = () => {
   ElMessage.info("正在获取最新预警...");
 };
 
 const handleLightWarning = (item) => {
   currentWarning.value = item;
+  selectedAdjustmentZone.value = resolveZoneByLocation(item.location);
   lightWarningDialogVisible.value = true;
 };
 
 const handleSevereWarning = (item) => {
   currentWarning.value = item;
+  selectedAdjustmentZone.value = resolveZoneByLocation(item.location);
   severeWarningDialogVisible.value = true;
 };
 
@@ -648,21 +785,48 @@ const viewDetails = (row) => {
 
 onMounted(() => {
   activeAITab.value = activeAITab.value || "suggestions";
-  initCharts();
-  window.addEventListener("resize", resizeCharts);
+  scrollChatToBottom();
+
+  const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (SpeechRecognition) {
+    speechRecognitionSupported.value = true;
+    chatRecognition = new SpeechRecognition();
+    chatRecognition.lang = "zh-CN";
+    chatRecognition.interimResults = false;
+    chatRecognition.continuous = false;
+    chatRecognition.onstart = () => {
+      isListening.value = true;
+    };
+    chatRecognition.onend = () => {
+      isListening.value = false;
+    };
+    chatRecognition.onerror = () => {
+      isListening.value = false;
+      ElMessage.warning("语音识别失败，请重试");
+    };
+    chatRecognition.onresult = (event) => {
+      const text = event.results?.[0]?.[0]?.transcript?.trim() || "";
+      if (!text) return;
+      chatInput.value = text;
+      sendChatMessage(text);
+    };
+  }
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener("resize", resizeCharts);
-  diseaseChart.value?.dispose();
+  stopAnalysisSpeech();
+  if (chatRecognition) {
+    chatRecognition.stop();
+    chatRecognition = null;
+  }
 });
 
 watch(
   () => activeIndex.value,
   (value) => {
-    if (value === "ai-sentinel") {
-      initCharts();
-    }
+    if (value === "ai-sentinel") return;
+    stopAnalysisSpeech();
   },
 );
 </script>
@@ -739,14 +903,11 @@ watch(
   color: #1d3b27;
 }
 
-.workspace-note {
-  font-size: 12px;
-  color: #7a8a80;
-  font-weight: 400;
-}
-
-.chart-block {
-  height: 340px;
+.analysis-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
 .secondary-grid :deep(.el-table) {
@@ -806,66 +967,249 @@ watch(
   color: #2e7d32;
 }
 
-.suggestions-panel,
+.chat-panel,
 .adjustment-panel,
 .data-insights-panel {
   padding: 10px 0;
 }
 
-.suggestion-card {
-  margin-bottom: 10px;
-  border-left: 4px solid #2e7d32;
-  transition: all 0.3s ease;
+.chat-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
-.suggestion-card:hover {
-  box-shadow: 0 4px 12px rgba(46, 125, 50, 0.15);
-  transform: translateY(-2px);
+.chat-quick-prompts {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
 }
 
-.suggestion-header {
+.chat-messages {
+  height: 420px;
+  overflow-y: auto;
+  padding: 18px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #f7fbf7 0%, #eef6ef 100%);
+  border: 1px solid #d8e6d9;
+}
+
+.chat-message {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.chat-message.user {
+  flex-direction: row-reverse;
+}
+
+.chat-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #dfeee0;
+  color: #2e7d32;
+  flex-shrink: 0;
+}
+
+.chat-message.user .chat-avatar {
+  background: #2e7d32;
+  color: #fff;
+}
+
+.chat-bubble {
+  max-width: min(78%, 760px);
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(31, 61, 40, 0.06);
+}
+
+.chat-message.user .chat-bubble {
+  background: linear-gradient(135deg, #2e7d32, #4caf50);
+  color: #fff;
+}
+
+.chat-meta {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.suggestion-header h4 {
-  margin: 0;
-  color: #303133;
-  font-size: 15px;
-}
-
-.suggestion-content {
-  color: #606266;
-  font-size: 14px;
-  line-height: 1.6;
-  margin: 10px 0;
-}
-
-.suggestion-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid #f0f0f0;
+  gap: 16px;
+  margin-bottom: 8px;
   font-size: 12px;
-  color: #909399;
+  color: #7b8d7e;
 }
 
-.location {
+.chat-message.user .chat-meta {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.chat-text {
+  line-height: 1.75;
+  font-size: 14px;
+  white-space: pre-wrap;
+}
+
+.chat-bubble.typing {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 52px;
+}
+
+.chat-bubble.typing span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #8fb892;
+  animation: typing-bounce 1.2s infinite ease-in-out;
+}
+
+.chat-bubble.typing span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.chat-bubble.typing span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.chat-toolbar {
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 16px;
+  background: #f8fbf8;
+  border: 1px solid #e0ebe1;
+}
+
+.chat-actions {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  flex-wrap: wrap;
 }
 
-.location i {
-  margin-right: 5px;
+.chat-action-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.voice-mode-select {
+  width: 110px;
+}
+
+.voice-mode-select :deep(.el-input__wrapper) {
+  background: #f4fbf5;
+  box-shadow: 0 0 0 1px #7ecf93 inset !important;
+}
+
+.voice-mode-select :deep(.el-input__inner) {
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.voice-input-button {
+  color: #2e7d32 !important;
+  border-color: #7ecf93 !important;
+  background: #f4fbf5 !important;
+}
+
+.voice-input-button:hover,
+.voice-input-button:focus {
+  color: #1f6a2a !important;
+  border-color: #52c41a !important;
+  background: #eaf7ec !important;
+}
+
+.chat-hint {
+  font-size: 12px;
+}
+
+.chat-muted {
+  color: #7f8d83;
+}
+
+.listening-indicator {
+  color: #d93025;
+  font-weight: 600;
+}
+
+@keyframes typing-bounce {
+  0%, 80%, 100% {
+    transform: scale(0.7);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .adjustment-card {
   height: 100%;
   border-top: 3px solid #2e7d32;
+  overflow: hidden;
+}
+
+.adjustment-card :deep(.el-card__body) {
+  overflow: hidden;
+}
+
+.zone-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(233, 246, 234, 0.92), rgba(244, 250, 245, 0.98));
+  border: 1px solid #d7e7d9;
+}
+
+.zone-toolbar-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1d3b27;
+  margin-bottom: 4px;
+}
+
+.zone-toolbar-desc {
+  font-size: 12px;
+  color: #6d7d73;
+}
+
+.zone-switcher {
+  flex-wrap: wrap;
+}
+
+.zone-overview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.zone-badge {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #2e7d32;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.zone-meta {
+  font-size: 13px;
+  color: #5f6f65;
 }
 
 .card-header {
@@ -881,28 +1225,42 @@ watch(
 }
 
 .adjustment-content {
-  padding: 10px 0;
+  padding: 10px 0 4px;
 }
 
-.current-value,
-.target-value {
+.current-value {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  gap: 16px;
   font-size: 13px;
 }
 
-.current-value .label,
-.target-value .label {
-  color: #909399;
+.current-value {
+  margin-bottom: 18px;
 }
 
-.current-value .value,
-.target-value .value {
+.current-value .label {
+  color: #909399;
+  flex-shrink: 0;
+}
+
+.current-value .value {
   color: #303133;
   font-weight: bold;
   font-size: 16px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.adjustment-content :deep(.el-slider) {
+  margin: 24px 4px 0;
+}
+
+.adjustment-content :deep(.el-slider__marks-text) {
+  margin-top: 10px;
+  font-size: 11px;
+  white-space: nowrap;
 }
 
 .adjustment-history {
@@ -1068,15 +1426,6 @@ watch(
   border-left: 4px solid #2e7d32;
 }
 
-.ai-report-header {
-  margin-bottom: 15px;
-}
-
-.ai-report-header h4 {
-  margin: 0 0 5px 0;
-  color: #2e7d32;
-}
-
 .ai-report-section {
   margin-bottom: 20px;
 }
@@ -1115,10 +1464,6 @@ watch(
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
-  }
-
-  .chart-block {
-    height: 260px;
   }
 
   .stat-card {

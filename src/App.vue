@@ -4,7 +4,13 @@
       <component :is="Component" @login-success="onLoginSuccess" />
     </template>
     <template v-else>
-      <Layout :activeIndex="activeIndex" @select="handleSelect">
+      <Layout
+        :activeIndex="activeIndex"
+        :unread-notifications="unreadNotifications"
+        :is-care-mode="isCareMode"
+        @toggle-care-mode="toggleCareMode"
+        @select="handleSelect"
+      >
         <component :is="Component" />
       </Layout>
     </template>
@@ -44,14 +50,27 @@ const dateRange = ref([]);
 const searchKeyword = ref("");
 const refreshSpinning = ref(false);
 const isFullscreen = ref(false);
+const isCareMode = ref(localStorage.getItem("careModeEnabled") === "true");
 
 const onLoginSuccess = (user) => {
   username.value = user || "用户";
   ElMessage.success("登录成功");
 };
 
+const applyCareModeClass = (enabled) => {
+  document.body.classList.toggle("care-mode", enabled);
+};
+
+const toggleCareMode = () => {
+  isCareMode.value = !isCareMode.value;
+  localStorage.setItem("careModeEnabled", String(isCareMode.value));
+  applyCareModeClass(isCareMode.value);
+  ElMessage.success(isCareMode.value ? "已开启关怀版模式" : "已关闭关怀版模式");
+};
+
 const notifications = ref([
   {
+    id: 1,
     title: "A区3号棚温度异常",
     time: "10分钟前",
     type: "warning",
@@ -59,6 +78,7 @@ const notifications = ref([
     read: false,
   },
   {
+    id: 2,
     title: "B区健康检查完成",
     time: "1小时前",
     type: "success",
@@ -66,6 +86,7 @@ const notifications = ref([
     read: true,
   },
   {
+    id: 3,
     title: "防疫知识更新通知",
     time: "2小时前",
     type: "info",
@@ -73,6 +94,7 @@ const notifications = ref([
     read: true,
   },
   {
+    id: 4,
     title: "系统维护计划",
     time: "5小时前",
     type: "info",
@@ -159,6 +181,7 @@ const warningList = ref([
     type: "温度异常",
     description: "温度超过阈值28°C，当前28.5°C",
     level: "medium",
+    status: "待处理",
   },
   {
     id: 2,
@@ -167,6 +190,7 @@ const warningList = ref([
     type: "湿度异常",
     description: "湿度过低，当前45%",
     level: "low",
+    status: "处理中",
   },
   {
     id: 3,
@@ -175,6 +199,7 @@ const warningList = ref([
     type: "行为异常",
     description: "检测到多只猪只活动异常",
     level: "high",
+    status: "待处理",
   },
   {
     id: 4,
@@ -183,6 +208,7 @@ const warningList = ref([
     type: "进食异常",
     description: "进食量减少30%",
     level: "medium",
+    status: "已处理",
   },
   {
     id: 5,
@@ -191,8 +217,12 @@ const warningList = ref([
     type: "空气质量异常",
     description: "氨气浓度超标",
     level: "high",
+    status: "处理中",
   },
 ]);
+const unreadNotifications = computed(
+  () => notifications.value.filter((item) => !item.read).length,
+);
 
 const knowledgeList = ref([
   {
@@ -447,7 +477,38 @@ const fetchAIAnalysis = () => {
 };
 
 // 所有方法（原样保留）
+const scrollToNotificationsSection = () => {
+  const section = document.getElementById("notifications-section");
+  if (section) {
+    section.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+};
+
+const openNotificationsCenter = async () => {
+  sessionStorage.setItem("scrollToNotifications", "true");
+  activeIndex.value = "dashboard";
+  if (router.currentRoute.value.path !== "/dashboard") {
+    await router.push("/dashboard");
+  }
+  nextTick(() => {
+    scrollToNotificationsSection();
+    initCharts();
+  });
+};
+
+const markNotificationAsRead = (notification) => {
+  const target = notifications.value.find((item) => item.id === notification.id);
+  if (!target || target.read) return;
+  target.read = true;
+  ElMessage.success("通知已标记为已读");
+};
+
 const handleSelect = (key) => {
+  if (key === "notifications") {
+    openNotificationsCenter();
+    return;
+  }
+
   activeIndex.value = key;
   const path = key === "dashboard" ? "/dashboard" : `/${key}`;
   if (router.currentRoute.value.path !== path) {
@@ -473,7 +534,7 @@ const handleCommand = (command) => {
     activeIndex.value = "profile";
     router.push("/profile");
     nextTick(initCharts);
-  } else if (command === "notifications") ElMessage.info("跳转到消息通知");
+  } else if (command === "notifications") openNotificationsCenter();
 };
 const goToMonitor = () => {
   activeIndex.value = "monitor";
@@ -486,6 +547,7 @@ const goToData = () => {
 };
 const goToWarning = () => {
   activeIndex.value = "warning";
+  router.push("/warning");
   nextTick(initCharts);
 };
 const goToKnowledgeBase = () => {
@@ -521,10 +583,10 @@ const handleWarningConfirm = (row) => {
     type: "warning",
   })
     .then(() => {
-      warningList.value = warningList.value.filter(
-        (item) => item.id !== row.id,
-      );
-      totalWarnings.value = warningList.value.length;
+      const targetWarning = warningList.value.find((item) => item.id === row.id);
+      if (targetWarning) {
+        targetWarning.status = "已处理";
+      }
       ElMessage.success("预警已处理");
     })
     .catch(() => {});
@@ -768,6 +830,7 @@ provide("activeIndex", activeIndex);
 provide("setActiveIndex", (val) => (activeIndex.value = val));
 provide("username", username);
 provide("notifications", notifications);
+provide("markNotificationAsRead", markNotificationAsRead);
 provide("cameras", cameras);
 provide("dataStats", dataStats);
 provide("warningList", warningList);
@@ -808,6 +871,7 @@ provide("activeAITab", activeAITab);
 provide("setActiveAITab", (val) => (activeAITab.value = val));
 
 onMounted(() => {
+  applyCareModeClass(isCareMode.value);
   if (!isLoginRoute.value) {
     nextTick(initCharts);
   }
@@ -819,6 +883,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  document.body.classList.remove("care-mode");
   document.removeEventListener("fullscreenchange", handleFullscreenChange);
   document.removeEventListener(
     "webkitfullscreenchange",
@@ -828,13 +893,20 @@ onBeforeUnmount(() => {
 });
 
 watch(
-  () => route.path,
-  (newPath) => {
+  () => route.fullPath,
+  (newFullPath) => {
+    const [newPath] = newFullPath.split("#");
     const key = newPath.replace(/^\//, "");
     const available = ["dashboard", "monitor", "ai-sentinel", "warning", "knowledge", "ranch", "profile"];
     activeIndex.value = available.includes(key) ? key : "dashboard";
     if (newPath !== "/login") {
       nextTick(initCharts);
+      if (sessionStorage.getItem("scrollToNotifications") === "true") {
+        sessionStorage.removeItem("scrollToNotifications");
+        nextTick(() => {
+          setTimeout(scrollToNotificationsSection, 80);
+        });
+      }
     }
   },
   { immediate: true },
@@ -1602,6 +1674,54 @@ body {
 .status-error {
   background-color: #fff1f0;
   color: var(--error-color);
+}
+
+body.care-mode {
+  font-size: 17px;
+}
+
+body.care-mode .app-title {
+  font-size: 24px !important;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+body.care-mode .app-subtitle {
+  font-size: 15.5px !important;
+}
+
+body.care-mode .el-menu-item,
+body.care-mode .el-dropdown-menu__item,
+body.care-mode .el-button,
+body.care-mode .el-input__inner,
+body.care-mode .el-textarea__inner,
+body.care-mode .el-select__selected-item,
+body.care-mode .el-form-item__label,
+body.care-mode .el-table,
+body.care-mode .el-card__header,
+body.care-mode .el-card__body,
+body.care-mode p {
+  font-size: 1.05em;
+}
+
+body.care-mode .el-button {
+  min-height: 41px;
+  padding: 9px 17px;
+}
+
+body.care-mode .el-input__wrapper,
+body.care-mode .el-textarea__inner,
+body.care-mode .el-select__wrapper {
+  min-height: 43px;
+}
+
+body.care-mode .el-menu-item {
+  height: 50px;
+  line-height: 50px;
+}
+
+body.care-mode .el-table .cell {
+  line-height: 1.8;
 }
 
 /* 增加系统介绍样式 */

@@ -22,7 +22,7 @@
       >
         <el-menu-item index="dashboard">首页</el-menu-item>
         <el-menu-item index="monitor">实时监控</el-menu-item>
-        <el-menu-item index="ai-sentinel">AI哨兵</el-menu-item>
+        <el-menu-item index="ai-sentinel">智栏卫士</el-menu-item>
         <el-menu-item index="warning">预警中心</el-menu-item>
         <el-menu-item index="knowledge">防疫知识</el-menu-item>
       </el-menu>

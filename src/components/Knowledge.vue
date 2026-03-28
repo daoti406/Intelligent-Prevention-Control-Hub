@@ -31,11 +31,12 @@
                 :span="6"
                 v-for="(item, index) in knowledgeList"
                 :key="index"
+                class="knowledge-col"
               >
                 <el-card shadow="hover" class="knowledge-card">
                   <template #header>
-                    <div class="flex justify-between items-center">
-                      <span style="font-weight: bold">{{ item.title }}</span>
+                    <div class="knowledge-card-header">
+                      <span class="knowledge-title">{{ item.title }}</span>
                       <el-tag
                         size="small"
                         :type="item.type === 'disease' ? 'danger' : 'success'"
@@ -44,21 +45,16 @@
                       </el-tag>
                     </div>
                   </template>
-                  <div
-                    style="font-size: 13px; color: #666; margin-bottom: 10px"
-                  >
+                  <div class="knowledge-description">
                     {{ item.description }}
                   </div>
-                  <div
-                    class="flex justify-between"
-                    style="font-size: 12px; color: #999"
-                  >
+                  <div class="knowledge-meta">
                     <span
                       ><i class="fas fa-calendar-alt"></i> {{ item.date }}</span
                     >
                     <span><i class="fas fa-eye"></i> {{ item.views }}</span>
                   </div>
-                  <div class="mt-3">
+                  <div class="knowledge-action">
                     <el-button
                       size="small"
                       type="primary"
@@ -105,6 +101,63 @@ const dialogClose = inject("dialogClose");
 </script>
 
 <style scoped>
+.knowledge-col {
+  display: flex;
+  margin-bottom: 20px;
+}
+
+.knowledge-card {
+  width: 100%;
+  height: 100%;
+}
+
+:deep(.knowledge-card .el-card__body) {
+  height: calc(100% - 57px);
+  display: flex;
+  flex-direction: column;
+}
+
+.knowledge-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.knowledge-title {
+  font-weight: 700;
+  line-height: 1.5;
+  min-height: 42px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.knowledge-description {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 12px;
+  line-height: 1.7;
+  min-height: 66px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.knowledge-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #999;
+  margin-top: auto;
+}
+
+.knowledge-action {
+  margin-top: 14px;
+}
+
 .knowledge-detail {
   padding: 20px 0;
 }
@@ -134,5 +187,11 @@ const dialogClose = inject("dialogClose");
 }
 .detail-content strong {
   color: #2e7d32;
+}
+
+@media (max-width: 1200px) {
+  .knowledge-title {
+    min-height: 48px;
+  }
 }
 </style>

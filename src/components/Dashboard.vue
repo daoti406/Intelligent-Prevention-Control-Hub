@@ -103,7 +103,7 @@
       </el-col>
     </el-row>
 
-    <el-row :gutter="20" class="quick-actions-row">
+    <el-row id="notifications-section" :gutter="20" class="quick-actions-row">
       <el-col :span="24">
         <el-card class="notifications-card" style="height: 100%;">
           <template #header>
@@ -123,7 +123,19 @@
                 <div class="notification-title">{{ item.title }}</div>
                 <div class="notification-time">{{ item.time }}</div>
               </div>
-              <el-tag :type="item.type" size="small">{{ item.status }}</el-tag>
+              <div class="notification-actions">
+                <el-tag :type="item.type" size="small">{{ item.status }}</el-tag>
+                <el-button
+                  v-if="!item.read"
+                  link
+                  type="primary"
+                  size="small"
+                  @click="markNotificationAsRead(item)"
+                >
+                  标记已读
+                </el-button>
+                <span v-else class="notification-read-state">已读</span>
+              </div>
             </div>
           </div>
           <div class="mt-4 text-center">
@@ -139,6 +151,7 @@
 import { inject } from "vue";
 
 const notifications = inject("notifications");
+const markNotificationAsRead = inject("markNotificationAsRead");
 const goToMonitor = inject("goToMonitor");
 const goToEnvControl = inject("goToEnvControl");
 const goToHealthAnalysis = inject("goToHealthAnalysis");
@@ -196,4 +209,15 @@ const goToReport = inject("goToReport");
 }
 
 /* 组件特有样式 */
+.notification-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.notification-read-state {
+  font-size: 12px;
+  color: #909399;
+}
 </style>
