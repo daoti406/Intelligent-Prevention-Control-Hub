@@ -387,7 +387,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { getRanches } from "../api/ranch";
+import { getRanches, createRanch, updateRanch, deleteRanch } from "../api/ranch";
 
 const currentTab = ref("feed");
 const formVisible = ref(false);
@@ -676,30 +676,40 @@ const saveForm = async () => {
   saveLoading.value = true;
   try {
     if (editingId.value) {
+      await updateRanch(editingId.value, form);
       const idx = ranches.value.findIndex((item) => item.id === editingId.value);
       if (idx !== -1) ranches.value[idx] = { ...form, id: editingId.value };
       ElMessage.success("养殖场已更新");
     } else {
-      const newId = ranches.value.length ? Math.max(...ranches.value.map((i) => i.id)) + 1 : 1;
+      const result = await createRanch(form);
+      const newId = result?.id || Date.now();
       ranches.value.unshift({ ...form, id: newId });
       ElMessage.success("养殖场已新增");
     }
     formVisible.value = false;
+  } catch (error) {
+    ElMessage.error(error.message || "操作失败");
   } finally {
     saveLoading.value = false;
   }
 };
 
-const removeRanch = (row) => {
-  ElMessageBox.confirm("确认删除该养殖场吗？", "提示", {
-    confirmButtonText: "确定",
-    cancelButtonText: "取消",
-    type: "warning",
-  }).then(() => {
+const removeRanch = async (row) => {
+  try {
+    await ElMessageBox.confirm("确认删除该养殖场吗？", "提示", {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning",
+    });
+    await deleteRanch(row.id);
     ranches.value = ranches.value.filter((item) => item.id !== row.id);
     deviceList.value = deviceList.value.filter((item) => item.ranchId !== row.id);
     ElMessage.success("删除成功");
-  });
+  } catch (error) {
+    if (error !== "cancel") {
+      ElMessage.error(error.message || "删除失败");
+    }
+  }
 };
 
 const handleRanchStatusChange = (row) => {

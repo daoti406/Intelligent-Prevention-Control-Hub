@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="login-page">
     <el-card class="login-card" shadow="hover">
       <div class="login-header">智栏哨兵登录</div>
@@ -141,7 +141,6 @@ const submitLogin = async () => {
     }
 
     await handleLoginSuccess(user, token);
-    ElMessage.success("登录成功");
   } catch (error) {
     loginError.value = error.message || "登录失败";
   } finally {

@@ -4,7 +4,7 @@ import vue from "@vitejs/plugin-vue";
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   const apiPrefix = env.VITE_API_PREFIX || "/api";
-  const apiTarget = env.VITE_API_BASE_URL || "http://127.0.0.1:8080";
+  const apiTarget = env.VITE_API_BASE_URL || "http://10.10.110.219:8081";
   const useProxy = env.VITE_USE_PROXY !== "false";
 
   return {
@@ -18,6 +18,7 @@ export default defineConfig(({ mode }) => {
               target: apiTarget,
               changeOrigin: true,
               secure: false,
+              rewrite: (path) => path.replace(/^\/api/, ""),
             },
           }
         : undefined,

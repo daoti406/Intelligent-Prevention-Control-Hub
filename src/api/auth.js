@@ -1,12 +1,12 @@
 import axios from "axios";
+import request from "../utils/request";
 
-const farmBaseUrl = import.meta.env.VITE_FARM_API_BASE_URL || "";
+const apiPrefix = import.meta.env.VITE_API_PREFIX || "/api";
 
 export async function login(data) {
-  const baseUrl = farmBaseUrl || "http://10.10.110.219:8081";
   try {
     const response = await axios({
-      url: `${baseUrl}/user/login`,
+      url: `${apiPrefix}/user/login`,
       method: "get",
       params: {
         username: data.username,
@@ -20,7 +20,7 @@ export async function login(data) {
       error.response?.data?.message ||
       error.response?.data?.error ||
       error.message ||
-      "请求失败";
+      "登录失败，请检查账号密码";
     throw new Error(message);
   }
 }
