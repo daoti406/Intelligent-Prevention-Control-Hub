@@ -385,8 +385,9 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
+import { getRanches } from "../api/ranch";
 
 const currentTab = ref("feed");
 const formVisible = ref(false);
@@ -459,6 +460,37 @@ const feedSearch = reactive({
 
 const animalSearch = reactive({
   keyword: "",
+});
+
+const normalizeRanchStatus = (value) => {
+  const status = String(value ?? "").toLowerCase();
+
+  if (
+    status.includes("停") ||
+    status.includes("disable") ||
+    status.includes("offline") ||
+    status === "0"
+  ) {
+    return "停用";
+  }
+
+  return "运营";
+};
+
+const normalizeRanchType = (value) => {
+  const type = String(value ?? "");
+
+  if (type.includes("鸡")) return "鸡舍";
+  if (type.includes("牛")) return "牛舍";
+  return "猪舍";
+};
+
+const mapRanchItem = (item, index) => ({
+  id: item.id ?? item.farmId ?? item.farm_id ?? index + 1,
+  name: item.name ?? item.farmName ?? item.farm_name ?? item.title ?? `养殖场${index + 1}`,
+  address: item.address ?? item.location ?? item.farmAddress ?? item.farm_address ?? "暂无地址",
+  type: normalizeRanchType(item.type ?? item.farmType ?? item.farm_type),
+  status: normalizeRanchStatus(item.status ?? item.state ?? item.enabled),
 });
 
 const ranches = ref([
@@ -574,6 +606,36 @@ const ranchDeviceCount = computed(() => {
   const ranchId = currentRanch.value?.id;
   if (!ranchId) return 0;
   return deviceList.value.filter((item) => item.ranchId === ranchId).length;
+});
+
+const fetchRanches = async () => {
+  try {
+    const data = await getRanches();
+    const list = Array.isArray(data)
+      ? data
+      : Array.isArray(data?.data)
+        ? data.data
+        : Array.isArray(data?.rows)
+          ? data.rows
+          : Array.isArray(data?.list)
+            ? data.list
+            : Array.isArray(data?.result)
+              ? data.result
+              : [];
+
+    if (!list.length) {
+      ElMessage.warning("养殖场接口已请求成功，但暂未返回列表数据");
+      return;
+    }
+
+    ranches.value = list.map(mapRanchItem);
+  } catch (error) {
+    ElMessage.error(error.message || "获取养殖场列表失败");
+  }
+};
+
+onMounted(() => {
+  fetchRanches();
 });
 
 const handleSearch = () => {

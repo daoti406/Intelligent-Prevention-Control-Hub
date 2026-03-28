@@ -1,17 +1,22 @@
 import request from "../utils/request";
+import { requestFirstAvailable } from "./fallback";
 
 export function getDashboardStats() {
-  return request({
-    url: "/dashboard/stats",
-    method: "get",
-  });
+  return requestFirstAvailable([
+    { url: "/dashboard/stats", method: "get" },
+    { url: "/data/stats", method: "get" },
+    { url: "/home/stats", method: "get" },
+    { url: "/overview/stats", method: "get" },
+  ]);
 }
 
 export function getNotifications() {
-  return request({
-    url: "/notifications",
-    method: "get",
-  });
+  return requestFirstAvailable([
+    { url: "/notifications", method: "get" },
+    { url: "/notice/list", method: "get" },
+    { url: "/message/list", method: "get" },
+    { url: "/inform/list", method: "get" },
+  ]);
 }
 
 export function getCameras() {

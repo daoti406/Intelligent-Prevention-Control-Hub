@@ -1,6 +1,5 @@
-<template>
+﻿<template>
   <div class="dashboard-container">
-    <!-- 欢迎横幅 -->
     <el-row :gutter="20" class="welcome-banner">
       <el-col :span="24">
         <el-card class="welcome-card">
@@ -10,16 +9,16 @@
               <h2 style="font-size: 18px; color: #606266; margin: 0 0 20px 0; font-weight: 400;">实时监测畜禽健康，智能预警疫病风险</h2>
               <div class="stats-overview">
                 <div class="stat-item">
-                  <span class="stat-value jumping-data" style="color: #fff;">24</span>
+                  <span class="stat-value jumping-data" style="color: #fff;">{{ bannerStats.totalMonitoring }}</span>
                   <span class="stat-label">在线监测设备</span>
                 </div>
                 <div class="stat-item">
-                  <span class="stat-value jumping-data" style="color: #67c23a;">97.8%</span>
-                  <span class="stat-label">健康率</span>
+                  <span class="stat-value jumping-data" style="color: #67c23a;">{{ bannerStats.healthRate }}</span>
+                  <span class="stat-label">平均健康率</span>
                 </div>
                 <div class="stat-item">
-                  <span class="stat-value jumping-data" style="color: #f56c6c;">4</span>
-                  <span class="stat-label">今日预警</span>
+                  <span class="stat-value jumping-data" style="color: #f56c6c;">{{ bannerStats.warningCount }}</span>
+                  <span class="stat-label">当前预警</span>
                 </div>
               </div>
             </div>
@@ -55,8 +54,8 @@
               <div class="intro-text">
                 <p>
                   采用AI+物联网技术，大数据科学分析，让养殖管理更智能，
-                  环境自动监控→健康智能分析→疫病提前预警→科学决策支持，
-                  帮助养殖户降本增效，保障畜禽健康，为畜牧增添一份安心。
+                  环境自动监控到健康智能分析，再到疫病提前预警与科学决策支持，
+                  帮助养殖户降本增效，保障畜禽健康。
                 </p>
               </div>
             </div>
@@ -65,7 +64,6 @@
       </el-col>
     </el-row>
 
-    <!-- 图表区域 -->
     <el-row :gutter="20" class="charts-row">
       <el-col :xs="24" :sm="12" :lg="8">
         <el-card class="chart-card">
@@ -78,7 +76,6 @@
           <div class="chart-container" id="healthChart"></div>
         </el-card>
       </el-col>
-      <!--预警分布-->
       <el-col :xs="24" :sm="12" :lg="8">
         <el-card class="chart-card">
           <template #header>
@@ -148,16 +145,18 @@
 </template>
 
 <script setup>
-import { inject } from "vue";
+import { computed, inject } from "vue";
 
 const notifications = inject("notifications");
 const markNotificationAsRead = inject("markNotificationAsRead");
-const goToMonitor = inject("goToMonitor");
-const goToEnvControl = inject("goToEnvControl");
-const goToHealthAnalysis = inject("goToHealthAnalysis");
+const dataStats = inject("dataStats");
 const goToWarning = inject("goToWarning");
-const goToKnowledgeBase = inject("goToKnowledgeBase");
-const goToReport = inject("goToReport");
+
+const bannerStats = computed(() => ({
+  totalMonitoring: dataStats?.value?.[0]?.value || "24",
+  healthRate: dataStats?.value?.[3]?.value || "97.8%",
+  warningCount: dataStats?.value?.[2]?.value || "4",
+}));
 </script>
 
 <style scoped>
@@ -204,11 +203,9 @@ const goToReport = inject("goToReport");
   animation-delay: 0.6s;
 }
 
-/* 响应式设计 */
 @media (max-width: 768px) {
 }
 
-/* 组件特有样式 */
 .notification-actions {
   display: flex;
   align-items: center;

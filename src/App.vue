@@ -40,6 +40,8 @@ import Warning from "./components/Warning.vue";
 import Knowledge from "./components/Knowledge.vue";
 import Profile from "./components/Profile.vue";
 import RanchManagement from "./components/RanchManagement.vue";
+import { getDashboardStats, getNotifications } from "./api/dashboard";
+import { getWarnings } from "./api/warning";
 
 const router = useRouter();
 const route = useRoute();
@@ -224,6 +226,110 @@ const unreadNotifications = computed(
   () => notifications.value.filter((item) => !item.read).length,
 );
 
+const pickList = (data) => {
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.data)) return data.data;
+  if (Array.isArray(data?.rows)) return data.rows;
+  if (Array.isArray(data?.list)) return data.list;
+  if (Array.isArray(data?.result)) return data.result;
+  return [];
+};
+
+const formatPercent = (value, fallback = "0%") => {
+  if (value === null || value === undefined || value === "") return fallback;
+  const numeric = Number(value);
+  if (Number.isNaN(numeric)) return String(value);
+  return `${numeric}%`;
+};
+
+const mapDashboardStats = (data) => {
+  const source = data?.data && !Array.isArray(data.data) ? data.data : data;
+  if (!source || Array.isArray(source)) return null;
+
+  const totalMonitoring =
+    source.totalMonitoring ??
+    source.totalCount ??
+    source.total ??
+    source.monitoringCount;
+  const abnormalCount =
+    source.abnormalCount ?? source.exceptionCount ?? source.errorCount;
+  const warningCount =
+    source.warningCount ?? source.warnCount ?? source.alertCount;
+  const healthRate =
+    source.healthRate ?? source.avgHealthRate ?? source.averageHealthRate;
+
+  if (
+    totalMonitoring === undefined &&
+    abnormalCount === undefined &&
+    warningCount === undefined &&
+    healthRate === undefined
+  ) {
+    return null;
+  }
+
+  return [
+    {
+      label: "总监测数量",
+      value: String(totalMonitoring ?? dataStats.value[0].value),
+      type: "success",
+    },
+    {
+      label: "异常数量",
+      value: String(abnormalCount ?? dataStats.value[1].value),
+      type: "warning",
+    },
+    {
+      label: "预警数量",
+      value: String(warningCount ?? dataStats.value[2].value),
+      type: "error",
+    },
+    {
+      label: "平均健康率",
+      value: formatPercent(healthRate, dataStats.value[3].value),
+      type: "success",
+    },
+  ];
+};
+
+const mapNotificationItem = (item, index) => ({
+  id: item.id ?? item.noticeId ?? item.messageId ?? index + 1,
+  title: item.title ?? item.name ?? item.content ?? item.message ?? `通知${index + 1}`,
+  time: item.time ?? item.createTime ?? item.createdAt ?? item.date ?? "刚刚",
+  type:
+    item.type ??
+    (String(item.level ?? "").includes("警")
+      ? "warning"
+      : String(item.status ?? "").includes("正常")
+        ? "success"
+        : "info"),
+  status: item.status ?? item.level ?? item.category ?? "信息",
+  read: Boolean(item.read ?? item.isRead ?? item.readFlag),
+});
+
+const normalizeWarningLevel = (value) => {
+  const level = String(value ?? "").toLowerCase();
+  if (level.includes("high") || level.includes("高")) return "high";
+  if (level.includes("low") || level.includes("低")) return "low";
+  return "medium";
+};
+
+const normalizeWarningStatus = (value) => {
+  const status = String(value ?? "");
+  if (status.includes("已")) return "已处理";
+  if (status.includes("中")) return "处理中";
+  return "待处理";
+};
+
+const mapWarningItem = (item, index) => ({
+  id: item.id ?? item.warningId ?? item.warnId ?? index + 1,
+  time: item.time ?? item.createTime ?? item.createdAt ?? item.date ?? "",
+  location: item.location ?? item.address ?? item.area ?? item.farmName ?? "未知位置",
+  type: item.type ?? item.warningType ?? item.warnType ?? "异常预警",
+  description: item.description ?? item.content ?? item.detail ?? "暂无描述",
+  level: normalizeWarningLevel(item.level ?? item.warningLevel ?? item.warnLevel),
+  status: normalizeWarningStatus(item.status ?? item.handleStatus ?? item.processStatus),
+});
+
 const knowledgeList = ref([
   {
     id: 1,
@@ -405,7 +511,7 @@ const knowledgeList = ref([
   // 原代码中的6条知识数据（因篇幅省略，请从原HTML中完整复制）
 ]);
 
-const totalWarnings = ref(warningList.value.length);
+const totalWarnings = computed(() => warningList.value.length);
 const syncing = ref(false);
 const syncOfficialData = () => {
   syncing.value = true;
@@ -474,6 +580,56 @@ const fetchAIAnalysis = () => {
     `;
     aiLoading.value = false;
   }, 1500);
+};
+
+const loadDashboardStats = async (silent = true) => {
+  try {
+    const data = await getDashboardStats();
+    const mapped = mapDashboardStats(data);
+    if (mapped) {
+      dataStats.value = mapped;
+    }
+  } catch (error) {
+    if (!silent) {
+      ElMessage.warning(error.message || "首页统计接口暂不可用，已使用本地数据");
+    }
+  }
+};
+
+const loadNotifications = async (silent = true) => {
+  try {
+    const data = await getNotifications();
+    const list = pickList(data);
+    if (list.length) {
+      notifications.value = list.map(mapNotificationItem);
+    }
+  } catch (error) {
+    if (!silent) {
+      ElMessage.warning(error.message || "通知接口暂不可用，已使用本地数据");
+    }
+  }
+};
+
+const loadWarnings = async (silent = true) => {
+  try {
+    const data = await getWarnings();
+    const list = pickList(data);
+    if (list.length) {
+      warningList.value = list.map(mapWarningItem);
+    }
+  } catch (error) {
+    if (!silent) {
+      ElMessage.warning(error.message || "预警接口暂不可用，已使用本地数据");
+    }
+  }
+};
+
+const loadBusinessData = async (silent = true) => {
+  await Promise.all([
+    loadDashboardStats(silent),
+    loadNotifications(silent),
+    loadWarnings(silent),
+  ]);
 };
 
 // 所有方法（原样保留）
@@ -608,6 +764,7 @@ const dialogClose = () => {
 const handleRefresh = () => {
   refreshSpinning.value = true;
   ElMessage.info("正在刷新监控数据...");
+  loadBusinessData(false);
   cameras.value.forEach((camera) => {
     if (camera.status === "online") {
       const randomChange = Math.random() * 0.1 - 0.05;
@@ -872,6 +1029,7 @@ provide("setActiveAITab", (val) => (activeAITab.value = val));
 
 onMounted(() => {
   applyCareModeClass(isCareMode.value);
+  loadBusinessData();
   if (!isLoginRoute.value) {
     nextTick(initCharts);
   }

@@ -73,10 +73,10 @@ const loginRules = {
   password: [{ required: true, message: "请输入密码", trigger: "blur" }],
 };
 
-const normalizeToken = (data, username) => {
+const normalizeToken = (data) => {
   if (typeof data === "string") {
     const matchedSessionId = data.match(/sessionId:\s*([A-Za-z0-9]+)/i);
-    return matchedSessionId?.[1] || data;
+    return matchedSessionId?.[1] || "";
   }
 
   return (
@@ -87,7 +87,7 @@ const normalizeToken = (data, username) => {
     data?.data?.access_token ||
     data?.result?.token ||
     data?.result?.access_token ||
-    `${username}-token`
+    ""
   );
 };
 
@@ -132,8 +132,13 @@ const submitLogin = async () => {
       password: loginForm.value.password,
     });
 
-    const token = normalizeToken(data, loginForm.value.username);
+    const token = normalizeToken(data);
     const user = normalizeUser(data, loginForm.value.username);
+
+    if (!token) {
+      localStorage.removeItem("authToken");
+      throw new Error("账号或密码错误，后端未返回有效登录凭证");
+    }
 
     await handleLoginSuccess(user, token);
     ElMessage.success("登录成功");

@@ -1,8 +1,10 @@
-import request from "../utils/request";
+﻿import request from "../utils/request";
+
+const farmBaseUrl = import.meta.env.VITE_FARM_API_BASE_URL || "";
 
 export function getRanches(params) {
   return request({
-    url: "/ranches",
+    url: farmBaseUrl ? `${farmBaseUrl}/farm/list` : "/farm/list",
     method: "get",
     params,
   });
