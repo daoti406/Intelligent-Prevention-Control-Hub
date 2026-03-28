@@ -162,8 +162,17 @@
         <el-form-item label="名称" prop="name">
           <el-input v-model="form.name" />
         </el-form-item>
-        <el-form-item label="地址" prop="address">
-          <el-input v-model="form.address" />
+        <el-form-item label="省份" prop="province">
+          <el-input v-model="form.province" placeholder="如：四川省" />
+        </el-form-item>
+        <el-form-item label="城市" prop="city">
+          <el-input v-model="form.city" placeholder="如：成都市" />
+        </el-form-item>
+        <el-form-item label="区县" prop="district">
+          <el-input v-model="form.district" placeholder="如：高新区" />
+        </el-form-item>
+        <el-form-item label="规模" prop="scale">
+          <el-input-number v-model="form.scale" :min="1" />
         </el-form-item>
         <el-form-item label="类型" prop="type">
           <el-select v-model="form.type" placeholder="请选择类型">
@@ -413,7 +422,10 @@ const animalSaveLoading = ref(false);
 const defaultForm = () => ({
   id: null,
   name: "",
-  address: "",
+  province: "",
+  city: "",
+  district: "",
+  scale: 100,
   type: "猪舍",
   status: "运营",
 });
@@ -485,13 +497,17 @@ const normalizeRanchType = (value) => {
   return "猪舍";
 };
 
-const mapRanchItem = (item, index) => ({
-  id: item.id ?? item.farmId ?? item.farm_id ?? index + 1,
-  name: item.name ?? item.farmName ?? item.farm_name ?? item.title ?? `养殖场${index + 1}`,
-  address: item.address ?? item.location ?? item.farmAddress ?? item.farm_address ?? "暂无地址",
-  type: normalizeRanchType(item.type ?? item.farmType ?? item.farm_type),
-  status: normalizeRanchStatus(item.status ?? item.state ?? item.enabled),
-});
+const mapRanchItem = (item, index) => {
+  // 组合省市区为完整地址
+  const fullAddress = [item.province, item.city, item.district].filter(Boolean).join("");
+  return {
+    id: item.id ?? item.farmId ?? item.farm_id ?? (index + 1),
+    name: item.name ?? item.farmName ?? item.farm_name ?? item.title ?? `养殖场${index + 1}`,
+    address: fullAddress || (item.address ?? item.location ?? item.farmAddress ?? item.farm_address ?? "暂无地址"),
+    type: normalizeRanchType(item.type ?? item.farmType ?? item.farm_type),
+    status: normalizeRanchStatus(item.status ?? item.state ?? item.enabled),
+  };
+};
 
 const ranches = ref([
   { id: 1, name: "A区猪舍", address: "成都市高新区A区", type: "猪舍", status: "运营" },
@@ -615,13 +631,15 @@ const fetchRanches = async () => {
       ? data
       : Array.isArray(data?.data)
         ? data.data
-        : Array.isArray(data?.rows)
-          ? data.rows
-          : Array.isArray(data?.list)
-            ? data.list
-            : Array.isArray(data?.result)
-              ? data.result
-              : [];
+        : Array.isArray(data?.records)
+          ? data.records
+          : Array.isArray(data?.rows)
+            ? data.rows
+            : Array.isArray(data?.list)
+              ? data.list
+              : Array.isArray(data?.result)
+                ? data.result
+                : [];
 
     if (!list.length) {
       ElMessage.warning("养殖场接口已请求成功，但暂未返回列表数据");
@@ -675,13 +693,23 @@ const saveForm = async () => {
 
   saveLoading.value = true;
   try {
+    // 映射表单字段到后端需要的字段
+    const farmData = {
+      name: form.name,
+      scale: form.scale || 100,
+      province: form.province || "",
+      city: form.city || "",
+      district: form.district || "",
+      status: form.status === "运营" ? 1 : 0,
+    };
+
     if (editingId.value) {
-      await updateRanch(editingId.value, form);
+      await updateRanch(editingId.value, farmData);
       const idx = ranches.value.findIndex((item) => item.id === editingId.value);
       if (idx !== -1) ranches.value[idx] = { ...form, id: editingId.value };
       ElMessage.success("养殖场已更新");
     } else {
-      const result = await createRanch(form);
+      const result = await createRanch(farmData);
       const newId = result?.id || Date.now();
       ranches.value.unshift({ ...form, id: newId });
       ElMessage.success("养殖场已新增");

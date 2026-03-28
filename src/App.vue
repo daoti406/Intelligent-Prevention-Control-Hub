@@ -169,9 +169,9 @@ const cameras = ref([
 ]);
 
 const dataStats = ref([
-  { label: "总监测数量", value: "42967", type: "success" },
-  { label: "异常数量", value: "945", type: "warning" },
-  { label: "预警数量", value: "1200", type: "error" },
+  { label: "总监测数量", value: "24", type: "success" },
+  { label: "异常数量", value: "5", type: "warning" },
+  { label: "预警数量", value: "5", type: "error" },
   { label: "平均健康率", value: "97.8%", type: "success" },
 ]);
 
