@@ -1,0 +1,149 @@
+/* 全局变量定义 */
+:root {
+  --primary-color: #409eff;
+  --primary-light: #ecf5ff;
+  --primary-dark: #337ecc;
+  --success-color: #67c23a;
+  --warning-color: #e6a23c;
+  --danger-color: #f56c6c;
+  --info-color: #909399;
+  
+  --text-primary: #303133;
+  --text-regular: #606266;
+  --text-secondary: #909399;
+  --text-placeholder: #c0c4cc;
+  
+  --border-color: #dcdfe6;
+  --border-light: #e4e7ed;
+  --border-lighter: #ebeef5;
+  
+  --background-color: #f0f2f5;
+  --background-light: #f5f7fa;
+  --background-lighter: #fafafa;
+  
+  --sidebar-bg: #ffffff;
+  --header-bg: #ffffff;
+  --main-bg: #f0f2f5;
+  
+  --shadow-light: 0 2px 4px rgba(0, 0, 0, 0.12), 0 0 6px rgba(0, 0, 0, 0.04);
+  --shadow-medium: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  --shadow-dark: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* 重置样式 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  background-color: var(--background-color);
+}
+
+#app {
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* 通用布局类 */
+.flex {
+  display: flex;
+}
+
+.flex-column {
+  flex-direction: column;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+/* 通用组件样式 */
+.card {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: var(--shadow-light);
+  padding: 16px;
+  border: 1px solid var(--border-light);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-lighter);
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .app-body {
+    flex-direction: column;
+  }
+  
+  .app-sidebar {
+    width: 100%;
+    height: auto;
+  }
+  
+  .app-main {
+    height: auto;
+  }
+}
+
+/* Element Plus 样式增强 */
+.el-card {
+  border-radius: 8px;
+  box-shadow: var(--shadow-light);
+}
+
+.el-table {
+  border-radius: 8px;
+}
+
+.el-button {
+  border-radius: 6px;
+}
+
+.el-menu {
+  border-right: none;
+}
+
+.el-menu-item {
+  border-radius: 6px;
+  margin-bottom: 4px;
+}
+
+.el-menu-item:hover {
+  background-color: var(--primary-light);
+}
+
+.el-menu-item.is-active {
+  background-color: var(--primary-light);
+}
