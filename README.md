@@ -266,8 +266,8 @@ docker run -d -p 8080:80 --name zhilan-sentinel zhilan-sentinel
 ## 📞 联系我们
 
 如有问题或建议，请通过以下方式联系：
-- 邮箱：support@example.com
-- 项目主页：https://github.com/your-repo
+- 邮箱：2960774535@qq.com
+- 微信：18781875472
 
 ---
 
