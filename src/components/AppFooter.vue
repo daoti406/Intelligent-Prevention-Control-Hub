@@ -2,7 +2,7 @@
   <footer class="app-footer">
     <div class="footer-content">
       <div class="footer-info">
-        <p>© 2025 智栏哨兵 - 畜禽健康智能防控中枢系统</p>
+        <p>© 2025 慧牧云眸 - 畜禽健康智能防控中枢系统</p>
         <p>技术支持：成都动医科技有限公司</p>
         <p>地址：中国（四川）自由贸易试验区成都高新区</p>
       </div>

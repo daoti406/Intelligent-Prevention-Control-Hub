@@ -5,19 +5,49 @@
         <el-card class="welcome-card">
           <div class="welcome-content">
             <div class="welcome-text">
-              <h1 style="font-size: 32px; margin: 0 0 10px 0; background: linear-gradient(135deg, #2e7d32 0%, #52c41a 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">欢迎使用智栏哨兵系统</h1>
-              <h2 style="font-size: 18px; color: #606266; margin: 0 0 20px 0; font-weight: 400;">实时监测畜禽健康，智能预警疫病风险</h2>
+              <h1
+                style="
+                  font-size: 32px;
+                  margin: 0 0 10px 0;
+                  background: linear-gradient(135deg, #2e7d32 0%, #52c41a 100%);
+                  -webkit-background-clip: text;
+                  -webkit-text-fill-color: transparent;
+                  background-clip: text;
+                "
+              >
+                欢迎使用慧牧云眸系统
+              </h1>
+              <h2
+                style="
+                  font-size: 18px;
+                  color: #606266;
+                  margin: 0 0 20px 0;
+                  font-weight: 400;
+                "
+              >
+                实时监测畜禽健康，智能预警疫病风险
+              </h2>
               <div class="stats-overview">
                 <div class="stat-item">
-                  <span class="stat-value jumping-data" style="color: #fff;">{{ bannerStats.totalMonitoring }}</span>
+                  <span class="stat-value jumping-data" style="color: #fff">{{
+                    bannerStats.totalMonitoring
+                  }}</span>
                   <span class="stat-label">在线监测设备</span>
                 </div>
                 <div class="stat-item">
-                  <span class="stat-value jumping-data" style="color: #67c23a;">{{ bannerStats.healthRate }}</span>
+                  <span
+                    class="stat-value jumping-data"
+                    style="color: #67c23a"
+                    >{{ bannerStats.healthRate }}</span
+                  >
                   <span class="stat-label">平均健康率</span>
                 </div>
                 <div class="stat-item">
-                  <span class="stat-value jumping-data" style="color: #f56c6c;">{{ bannerStats.warningCount }}</span>
+                  <span
+                    class="stat-value jumping-data"
+                    style="color: #f56c6c"
+                    >{{ bannerStats.warningCount }}</span
+                  >
                   <span class="stat-label">当前预警</span>
                 </div>
               </div>
@@ -27,7 +57,9 @@
                 <template #header>
                   <div class="weather-header">
                     <i class="fas fa-sun"></i>
-                    <span style="color: #2fcf6d; font-weight: bold;">环境监测</span>
+                    <span style="color: #2fcf6d; font-weight: bold"
+                      >环境监测</span
+                    >
                     <br />
                   </div>
                 </template>
@@ -106,9 +138,13 @@
         <el-card class="ai-features-card">
           <template #header>
             <div class="ai-features-header">
-              <i class="el-icon-star" style="color: #2e7d32;"></i>
-              <span style="color: #2e7d32; font-weight: bold;">普惠AI创新功能</span>
-              <span style="font-size: 14px; color: #666; margin-left: 10px;">· 专为中小养殖场设计的智能技术革命</span>
+              <i class="el-icon-star" style="color: #2e7d32"></i>
+              <span style="color: #2e7d32; font-weight: bold"
+                >普惠AI创新功能</span
+              >
+              <span style="font-size: 14px; color: #666; margin-left: 10px"
+                >· 专为中小养殖场设计的智能技术革命</span
+              >
             </div>
           </template>
           <div class="ai-features-content">
@@ -128,7 +164,7 @@
                   </div>
                 </div>
               </el-col>
-              
+
               <el-col :xs="24" :sm="8" :lg="6">
                 <div class="ai-feature-item">
                   <div class="feature-icon intelligence">
@@ -144,7 +180,7 @@
                   </div>
                 </div>
               </el-col>
-              
+
               <el-col :xs="24" :sm="8" :lg="6">
                 <div class="ai-feature-item">
                   <div class="feature-icon easy-use">
@@ -160,7 +196,7 @@
                   </div>
                 </div>
               </el-col>
-              
+
               <el-col :xs="24" :sm="8" :lg="6">
                 <div class="ai-feature-item">
                   <div class="feature-icon performance">
@@ -177,7 +213,7 @@
                 </div>
               </el-col>
             </el-row>
-            
+
             <div class="ai-actions">
               <el-button type="primary" @click="goToAIFeatures" size="large">
                 <i class="el-icon-magic-stick"></i>
@@ -202,7 +238,7 @@
 
     <el-row id="notifications-section" :gutter="20" class="quick-actions-row">
       <el-col :span="24">
-        <el-card class="notifications-card" style="height: 100%;">
+        <el-card class="notifications-card" style="height: 100%">
           <template #header>
             <div class="notifications-header">
               <i class="fas fa-bell"></i>
@@ -221,7 +257,9 @@
                 <div class="notification-time">{{ item.time }}</div>
               </div>
               <div class="notification-actions">
-                <el-tag :type="item.type" size="small">{{ item.status }}</el-tag>
+                <el-tag :type="item.type" size="small">{{
+                  item.status
+                }}</el-tag>
                 <el-button
                   v-if="!item.read"
                   link
@@ -236,7 +274,9 @@
             </div>
           </div>
           <div class="mt-4 text-center">
-            <el-button type="text" @click="goToWarning">查看全部预警 <i class="el-icon-arrow-right"></i></el-button>
+            <el-button type="text" @click="goToWarning"
+              >查看全部预警 <i class="el-icon-arrow-right"></i
+            ></el-button>
           </div>
         </el-card>
       </el-col>
@@ -246,8 +286,8 @@
 
 <script setup>
 import { computed, inject } from "vue";
-import { useRouter } from 'vue-router';
-import PerformanceDashboard from './PerformanceDashboard.vue';
+import { useRouter } from "vue-router";
+import PerformanceDashboard from "./PerformanceDashboard.vue";
 
 const router = useRouter();
 
@@ -263,11 +303,11 @@ const bannerStats = computed(() => ({
 }));
 
 const goToAIFeatures = () => {
-  router.push('/ai-panel');
+  router.push("/ai-panel");
 };
 
 const viewCostBenefits = () => {
-  router.push('/performance');
+  router.push("/performance");
 };
 </script>
 
@@ -303,8 +343,13 @@ const viewCostBenefits = () => {
 }
 
 @keyframes jump {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 .stat-item:nth-child(2) .jumping-data {
@@ -367,10 +412,18 @@ const viewCostBenefits = () => {
   justify-content: center;
 }
 
-.feature-icon.cost-saving { color: #f56c6c; }
-.feature-icon.intelligence { color: #67c23a; }
-.feature-icon.easy-use { color: #409eff; }
-.feature-icon.performance { color: #e6a23c; }
+.feature-icon.cost-saving {
+  color: #f56c6c;
+}
+.feature-icon.intelligence {
+  color: #67c23a;
+}
+.feature-icon.easy-use {
+  color: #409eff;
+}
+.feature-icon.performance {
+  color: #e6a23c;
+}
 
 .feature-content h4 {
   margin: 0 0 10px 0;
@@ -419,12 +472,12 @@ const viewCostBenefits = () => {
   .ai-feature-item {
     margin-bottom: 15px;
   }
-  
+
   .ai-actions {
     flex-direction: column;
     align-items: center;
   }
-  
+
   .ai-actions .el-button {
     width: 100%;
     max-width: 300px;

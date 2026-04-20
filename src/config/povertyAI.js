@@ -5,7 +5,7 @@
 
 export const POVERTY_AI_CONFIG = {
   // 基础配置
-  name: "智栏哨兵-普惠AI系统",
+  name: "慧牧云眸-普惠AI系统",
   version: "2.0.0",
   
   // 视觉传感器替代技术配置

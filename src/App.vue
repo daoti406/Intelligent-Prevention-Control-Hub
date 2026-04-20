@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <router-view v-slot="{ Component }">
     <template v-if="isLoginRoute">
       <component :is="Component" @login-success="onLoginSuccess" />
@@ -293,7 +293,12 @@ const mapDashboardStats = (data) => {
 
 const mapNotificationItem = (item, index) => ({
   id: item.id ?? item.noticeId ?? item.messageId ?? index + 1,
-  title: item.title ?? item.name ?? item.content ?? item.message ?? `通知${index + 1}`,
+  title:
+    item.title ??
+    item.name ??
+    item.content ??
+    item.message ??
+    `通知${index + 1}`,
   time: item.time ?? item.createTime ?? item.createdAt ?? item.date ?? "刚刚",
   type:
     item.type ??
@@ -323,11 +328,16 @@ const normalizeWarningStatus = (value) => {
 const mapWarningItem = (item, index) => ({
   id: item.id ?? item.warningId ?? item.warnId ?? index + 1,
   time: item.time ?? item.createTime ?? item.createdAt ?? item.date ?? "",
-  location: item.location ?? item.address ?? item.area ?? item.farmName ?? "未知位置",
+  location:
+    item.location ?? item.address ?? item.area ?? item.farmName ?? "未知位置",
   type: item.type ?? item.warningType ?? item.warnType ?? "异常预警",
   description: item.description ?? item.content ?? item.detail ?? "暂无描述",
-  level: normalizeWarningLevel(item.level ?? item.warningLevel ?? item.warnLevel),
-  status: normalizeWarningStatus(item.status ?? item.handleStatus ?? item.processStatus),
+  level: normalizeWarningLevel(
+    item.level ?? item.warningLevel ?? item.warnLevel,
+  ),
+  status: normalizeWarningStatus(
+    item.status ?? item.handleStatus ?? item.processStatus,
+  ),
 });
 
 const knowledgeList = ref([
@@ -522,24 +532,28 @@ const syncOfficialData = () => {
         id: 7,
         title: "2026年春季动物疫病防控",
         type: "disease",
-        description: "农业农村部发布的关于2026年春季重大动物疫病防控工作的通知及技术方案。",
+        description:
+          "农业农村部发布的关于2026年春季重大动物疫病防控工作的通知及技术方案。",
         date: "2026-03-01",
         views: 1050,
-        content: "<h3>2026年春季重大动物疫病防控技术指南</h3><p>官方最新指导文件内容...</p>"
+        content:
+          "<h3>2026年春季重大动物疫病防控技术指南</h3><p>官方最新指导文件内容...</p>",
       },
       {
         id: 8,
         title: "生猪标准化养殖技术规范",
         type: "technology",
-        description: "国家标准GB/T最新修订版，涵盖场址选择、建设规范、饲养管理等全流程。",
+        description:
+          "国家标准GB/T最新修订版，涵盖场址选择、建设规范、饲养管理等全流程。",
         date: "2026-02-15",
         views: 890,
-        content: "<h3>生猪标准化养殖技术规范 (2026版)</h3><p>最新国家标准详细条款...</p>"
-      }
+        content:
+          "<h3>生猪标准化养殖技术规范 (2026版)</h3><p>最新国家标准详细条款...</p>",
+      },
     ];
     // 避免重复添加
-    newData.forEach(item => {
-      if (!knowledgeList.value.find(k => k.id === item.id)) {
+    newData.forEach((item) => {
+      if (!knowledgeList.value.find((k) => k.id === item.id)) {
         knowledgeList.value.unshift(item);
       }
     });
@@ -591,7 +605,9 @@ const loadDashboardStats = async (silent = true) => {
     }
   } catch (error) {
     if (!silent) {
-      ElMessage.warning(error.message || "首页统计接口暂不可用，已使用本地数据");
+      ElMessage.warning(
+        error.message || "首页统计接口暂不可用，已使用本地数据",
+      );
     }
   }
 };
@@ -653,7 +669,9 @@ const openNotificationsCenter = async () => {
 };
 
 const markNotificationAsRead = (notification) => {
-  const target = notifications.value.find((item) => item.id === notification.id);
+  const target = notifications.value.find(
+    (item) => item.id === notification.id,
+  );
   if (!target || target.read) return;
   target.read = true;
   ElMessage.success("通知已标记为已读");
@@ -739,7 +757,9 @@ const handleWarningConfirm = (row) => {
     type: "warning",
   })
     .then(() => {
-      const targetWarning = warningList.value.find((item) => item.id === row.id);
+      const targetWarning = warningList.value.find(
+        (item) => item.id === row.id,
+      );
       if (targetWarning) {
         targetWarning.status = "已处理";
       }
@@ -866,40 +886,40 @@ const initCharts = () => {
     if (warningChart) {
       warningChart.setOption({
         color: ["#ff7875", "#ffc069", "#95de64", "#5cdbd3"],
-        tooltip: { 
+        tooltip: {
           trigger: "item",
-          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          backgroundColor: "rgba(255, 255, 255, 0.95)",
           borderWidth: 1,
-          borderColor: '#eee',
-          textStyle: { color: '#333' },
-          formatter: '{b}: {c} ({d}%)'
+          borderColor: "#eee",
+          textStyle: { color: "#333" },
+          formatter: "{b}: {c} ({d}%)",
         },
         legend: {
           orient: "vertical",
           right: "10%",
           top: "center",
-          textStyle: { fontSize: 12, color: '#606266' }
+          textStyle: { fontSize: 12, color: "#606266" },
         },
         series: [
           {
             name: "预警类型分布",
             type: "pie",
             radius: ["35%", "65%"],
-            center: ['40%', '50%'],
-            roseType: 'area',
+            center: ["40%", "50%"],
+            roseType: "area",
             itemStyle: {
               borderRadius: 10,
-              borderColor: '#fff',
+              borderColor: "#fff",
               borderWidth: 3,
-              shadowColor: 'rgba(0, 0, 0, 0.1)',
-              shadowBlur: 10
+              shadowColor: "rgba(0, 0, 0, 0.1)",
+              shadowBlur: 10,
             },
             emphasis: {
               itemStyle: {
-                borderColor: '#fff',
+                borderColor: "#fff",
                 borderWidth: 3,
-                shadowBlur: 15
-              }
+                shadowBlur: 15,
+              },
             },
             data: [
               { value: 35, name: "温度异常" },
@@ -918,43 +938,66 @@ const initCharts = () => {
     if (scaleChart) {
       scaleChart.setOption({
         color: ["#1890ff", "#52c41a", "#faad14"],
-        tooltip: { trigger: "axis", backgroundColor: 'rgba(255, 255, 255, 0.95)', borderWidth: 1, borderColor: '#eee' },
-        legend: { data: ["猪", "鸡", "牛"], top: 10 },
-        grid: { left: "3%", right: "4%", bottom: "10%", top: "15%", containLabel: true },
-        xAxis: { 
-          type: "category", 
-          data: ["A区", "B区", "C区"],
-          axisLine: { lineStyle: { color: '#ddd' } },
-          axisLabel: { color: '#606266' }
+        tooltip: {
+          trigger: "axis",
+          backgroundColor: "rgba(255, 255, 255, 0.95)",
+          borderWidth: 1,
+          borderColor: "#eee",
         },
-        yAxis: { 
-          type: "value", 
+        legend: { data: ["猪", "鸡", "牛"], top: 10 },
+        grid: {
+          left: "3%",
+          right: "4%",
+          bottom: "10%",
+          top: "15%",
+          containLabel: true,
+        },
+        xAxis: {
+          type: "category",
+          data: ["A区", "B区", "C区"],
+          axisLine: { lineStyle: { color: "#ddd" } },
+          axisLabel: { color: "#606266" },
+        },
+        yAxis: {
+          type: "value",
           name: "存栏数量",
-          axisLine: { lineStyle: { color: '#ddd' } },
-          splitLine: { lineStyle: { color: '#f0f0f0' } },
-          axisLabel: { color: '#606266' }
+          axisLine: { lineStyle: { color: "#ddd" } },
+          splitLine: { lineStyle: { color: "#f0f0f0" } },
+          axisLabel: { color: "#606266" },
         },
         series: [
-          { 
-            name: "猪", 
-            type: "bar", 
-            barWidth: '20%', 
-            itemStyle: { borderRadius: [6, 6, 0, 0], shadowColor: 'rgba(0, 0, 0, 0.1)', shadowBlur: 8 },
-            data: [240, 180, 120] 
+          {
+            name: "猪",
+            type: "bar",
+            barWidth: "20%",
+            itemStyle: {
+              borderRadius: [6, 6, 0, 0],
+              shadowColor: "rgba(0, 0, 0, 0.1)",
+              shadowBlur: 8,
+            },
+            data: [240, 180, 120],
           },
-          { 
-            name: "鸡", 
-            type: "bar", 
-            barWidth: '20%', 
-            itemStyle: { borderRadius: [6, 6, 0, 0], shadowColor: 'rgba(0, 0, 0, 0.1)', shadowBlur: 8 },
-            data: [500, 450, 380] 
+          {
+            name: "鸡",
+            type: "bar",
+            barWidth: "20%",
+            itemStyle: {
+              borderRadius: [6, 6, 0, 0],
+              shadowColor: "rgba(0, 0, 0, 0.1)",
+              shadowBlur: 8,
+            },
+            data: [500, 450, 380],
           },
-          { 
-            name: "牛", 
-            type: "bar", 
-            barWidth: '20%', 
-            itemStyle: { borderRadius: [6, 6, 0, 0], shadowColor: 'rgba(0, 0, 0, 0.1)', shadowBlur: 8 },
-            data: [80, 65, 50] 
+          {
+            name: "牛",
+            type: "bar",
+            barWidth: "20%",
+            itemStyle: {
+              borderRadius: [6, 6, 0, 0],
+              shadowColor: "rgba(0, 0, 0, 0.1)",
+              shadowBlur: 8,
+            },
+            data: [80, 65, 50],
           },
         ],
       });
@@ -1037,7 +1080,7 @@ onMounted(() => {
   document.addEventListener("fullscreenchange", handleFullscreenChange);
   document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
   document.addEventListener("MSFullscreenChange", handleFullscreenChange);
-  setTimeout(() => ElMessage.success("智栏哨兵系统已加载完成！"), 500);
+  setTimeout(() => ElMessage.success("慧牧云眸系统已加载完成！"), 500);
 });
 
 onBeforeUnmount(() => {
@@ -1055,7 +1098,15 @@ watch(
   (newFullPath) => {
     const [newPath] = newFullPath.split("#");
     const key = newPath.replace(/^\//, "");
-    const available = ["dashboard", "monitor", "ai-sentinel", "warning", "knowledge", "ranch", "profile"];
+    const available = [
+      "dashboard",
+      "monitor",
+      "ai-sentinel",
+      "warning",
+      "knowledge",
+      "ranch",
+      "profile",
+    ];
     activeIndex.value = available.includes(key) ? key : "dashboard";
     if (newPath !== "/login") {
       nextTick(initCharts);
@@ -1315,9 +1366,8 @@ body {
 }
 
 .el-menu-item:hover {
-  background-color: rgba(0, 0, 0, 0.04) !important; 
+  background-color: rgba(0, 0, 0, 0.04) !important;
 }
-
 
 .user-info {
   display: flex;

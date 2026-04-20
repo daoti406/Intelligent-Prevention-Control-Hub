@@ -7,7 +7,7 @@
           alt="logo"
           style="height: 50px"
         />
-        <h1 class="app-title">智栏哨兵</h1>
+        <h1 class="app-title">慧牧云眸</h1>
         <span class="app-subtitle">畜禽健康智能防控中枢系统</span>
       </div>
       <el-menu
@@ -18,7 +18,13 @@
         active-text-color="#52c41a"
         @select="handleSelect"
         class="nav-menu"
-        style="border-bottom: none; flex: 1; display: flex; justify-content: center; gap: 20px;"
+        style="
+          border-bottom: none;
+          flex: 1;
+          display: flex;
+          justify-content: center;
+          gap: 20px;
+        "
       >
         <el-menu-item index="dashboard">首页</el-menu-item>
         <el-menu-item index="monitor">实时监控</el-menu-item>

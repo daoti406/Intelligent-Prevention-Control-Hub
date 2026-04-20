@@ -1,6 +1,6 @@
 /**
  * 系统主配置文件
- * 管理整个智栏哨兵系统的配置和API接口
+ * 管理整个慧牧云眸系统的配置和API接口
  */
 
 import { POVERTY_AI_CONFIG } from './povertyAI';
@@ -8,8 +8,8 @@ import { POVERTY_AI_CONFIG } from './povertyAI';
 // 系统基础配置
 export const SYSTEM_CONFIG = {
   // 应用信息
-  app: {
-    name: "智栏哨兵",
+app: {
+    name: "慧牧云眸",
     version: "2.0.0",
     description: "基于视觉传感器替代技术的普惠农业AI监测系统",
     author: "智能农业技术团队",
@@ -151,7 +151,7 @@ export const ENV_CONFIG = {
   },
   production: {
     debug: false,
-    apiBase: "https://api.zhilan-sentinel.com/api",
+    apiBase: "https://api.huimuyunmu.com/api",
     mockData: false,
     logLevel: "error"
   }
@@ -295,7 +295,7 @@ export class SystemConfigManager {
   // 保存到本地存储
   saveToStorage() {
     try {
-      localStorage.setItem('zhilan_system_config', JSON.stringify(this.config));
+      localStorage.setItem('huimuyunmu_system_config', JSON.stringify(this.config));
     } catch (error) {
       console.warn('无法保存配置到本地存储:', error);
     }
@@ -304,7 +304,7 @@ export class SystemConfigManager {
   // 从本地存储加载
   loadFromStorage() {
     try {
-      const saved = localStorage.getItem('zhilan_system_config');
+      const saved = localStorage.getItem('huimuyunmu_system_config');
       if (saved) {
         this.config = { ...this.config, ...JSON.parse(saved) };
       }
@@ -316,7 +316,7 @@ export class SystemConfigManager {
   // 重置为默认配置
   reset() {
     this.config = { ...SYSTEM_CONFIG };
-    localStorage.removeItem('zhilan_system_config');
+    localStorage.removeItem('huimuyunmu_system_config');
   }
 }
 

@@ -659,7 +659,7 @@ class PerformanceTest {
       <!DOCTYPE html>
       <html>
       <head>
-        <title>智栏哨兵性能测试报告</title>
+        <title>慧牧云眸性能测试报告</title>
         <style>
           body { font-family: Arial, sans-serif; margin: 20px; }
           .summary { background: #f5f5f5; padding: 20px; border-radius: 5px; }
@@ -668,7 +668,7 @@ class PerformanceTest {
         </style>
       </head>
       <body>
-        <h1>智栏哨兵性能测试报告</h1>
+        <h1>慧牧云眸性能测试报告</h1>
         <div class="summary">
           <h2>测试概要</h2>
           <p>测试时间: ${this.testResults.startTime} - ${this.testResults.endTime}</p>
