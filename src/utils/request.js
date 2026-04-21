@@ -5,7 +5,7 @@ const useProxy = import.meta.env.VITE_USE_PROXY !== "false";
 const directBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
 
 const request = axios.create({
-  baseURL: useProxy ? apiPrefix : directBaseUrl,
+  baseURL: useProxy ? "" : directBaseUrl,
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",

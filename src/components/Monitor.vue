@@ -1,5 +1,89 @@
 <template>
   <div class="monitor-container">
+    <!-- AI实时分析结果卡片 -->
+    <el-row :gutter="20" class="mb-4">
+      <el-col :span="24">
+        <el-card class="analysis-result">
+          <template #header>
+            <div class="flex justify-between items-center">
+              <h3 style="margin: 0; color: #2e7d32">
+                <i class="fas fa-robot"></i> AI实时分析结果
+              </h3>
+            </div>
+          </template>
+          <div class="result-item">
+            <span class="label">识别动物：</span>
+            <span class="value">{{ latestAlert.animal }}</span>
+          </div>
+          <div class="result-item">
+            <span class="label">置信度：</span>
+            <span class="value">{{ (latestAlert.confidence * 100).toFixed(1) }}%</span>
+          </div>
+          <div class="result-item">
+            <span class="label">预警等级：</span>
+            <el-tag :type="latestAlert.alert_level === '高' ? 'danger' : (latestAlert.alert_level === '中' ? 'warning' : 'info')">
+              {{ latestAlert.alert_level }}
+            </el-tag>
+          </div>
+          <div class="result-item">
+            <span class="label">处理建议：</span>
+            <span class="value">{{ latestAlert.advice }}</span>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+    
+    <!-- AI养殖建议卡片 -->
+    <el-row :gutter="20" class="mb-4">
+      <el-col :span="24">
+        <el-card class="ai-advice-card">
+          <template #header>
+            <div class="flex justify-between items-center">
+              <h3 style="margin: 0; color: #2e7d32">
+                <i class="fas fa-brain"></i> 智栏卫士 - AI养殖建议
+              </h3>
+            </div>
+          </template>
+          <div class="ai-advice-form">
+            <el-form :model="adviceForm" label-width="80px">
+              <el-form-item label="动物类型">
+                <el-select v-model="adviceForm.animal_type" placeholder="请选择动物类型">
+                  <el-option label="猪" value="猪"></el-option>
+                  <el-option label="牛" value="牛"></el-option>
+                  <el-option label="鸡" value="鸡"></el-option>
+                </el-select>
+              </el-form-item>
+              <el-form-item label="问题">
+                <el-input
+                  v-model="adviceForm.query"
+                  type="textarea"
+                  :rows="3"
+                  placeholder="请输入您的养殖问题，例如：如何预防猪瘟？"
+                ></el-input>
+              </el-form-item>
+              <el-form-item label="上下文">
+                <el-input
+                  v-model="adviceForm.context"
+                  type="textarea"
+                  :rows="2"
+                  placeholder="可选：提供更多上下文信息"
+                ></el-input>
+              </el-form-item>
+              <el-form-item>
+                <el-button type="primary" @click="fetchAIAdvice" :loading="adviceLoading">
+                  <i class="fas fa-paper-plane"></i> 获取建议
+                </el-button>
+              </el-form-item>
+            </el-form>
+            <div v-if="aiAdvice" class="ai-advice-result">
+              <h4>智栏卫士建议：</h4>
+              <p>{{ aiAdvice }}</p>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+    
     <!-- AI多模态分析控制面板 -->
     <el-row :gutter="20" class="mb-4">
       <el-col :span="24">
@@ -361,6 +445,8 @@
 import { inject, onMounted, onUnmounted, watch, ref, reactive } from "vue";
 import * as echarts from "echarts";
 import { multiModalProcessor, formatHealthData } from "../utils/multiModalProcessor.js";
+// 导入新的实时数据获取函数
+import { getLatestResult, getAIAdvice, testBackend } from "@/api/realtime";
 
 const cameras = inject("cameras");
 const refreshSpinning = inject("refreshSpinning");
@@ -368,6 +454,55 @@ const isFullscreen = inject("isFullscreen");
 const handleRefresh = inject("handleRefresh");
 const toggleFullscreen = inject("toggleFullscreen");
 const activeIndex = inject("activeIndex");
+
+// 定义响应式数据，用于存储后端返回的最新结果
+const latestAlert = ref({
+  animal: '--',
+  confidence: 0,
+  alert_level: '等待数据',
+  advice: ''
+});
+
+// AI养殖建议相关数据
+const adviceForm = reactive({
+  animal_type: '猪',
+  query: '',
+  context: ''
+});
+
+const adviceLoading = ref(false);
+const aiAdvice = ref('');
+
+let pollingInterval = null; // 存储定时器ID，用于在组件销毁时清除
+
+// 获取后端数据并更新界面的函数
+const fetchLatestAlert = async () => {
+  const result = await getLatestResult();
+  latestAlert.value = result;
+};
+
+// 获取AI养殖建议
+const fetchAIAdvice = async () => {
+  if (!adviceForm.query) {
+    return;
+  }
+  
+  adviceLoading.value = true;
+  try {
+    const result = await getAIAdvice(
+      adviceForm.query,
+      adviceForm.animal_type,
+      adviceForm.context
+    );
+    console.log('AI建议响应数据:', result);
+    aiAdvice.value = result.advice;
+  } catch (error) {
+    console.error('获取AI建议失败:', error);
+    aiAdvice.value = '获取建议失败，请稍后重试';
+  } finally {
+    adviceLoading.value = false;
+  }
+};
 
 // AI状态管理
 const aiStatus = reactive({
@@ -538,11 +673,32 @@ onMounted(() => {
     initEnvTrendChart();
     initActivityChart();
   }, 300);
+  
+  // 测试后端服务是否正常
+  testBackend().then(result => {
+    console.log('后端服务测试结果:', result);
+  });
+  
+  // 自动测试 AI 建议功能
+  setTimeout(() => {
+    adviceForm.animal_type = '猪';
+    adviceForm.query = '如何预防猪瘟？';
+    fetchAIAdvice();
+  }, 2000);
+  
+  // 立即获取一次，无需等待第一个2秒间隔
+  fetchLatestAlert();
+  // 每隔2秒轮询一次，保持界面实时性
+  pollingInterval = setInterval(fetchLatestAlert, 2000);
 });
 
 onUnmounted(() => {
   envTrendChart?.dispose();
   activityChart?.dispose();
+  // 组件销毁前清除定时器，避免内存泄漏
+  if (pollingInterval) {
+    clearInterval(pollingInterval);
+  }
 });
 
 // 监听路由变化，当切换到 monitor 页面时重新初始化图表
@@ -641,6 +797,68 @@ function initActivityChart() {
 </script>
 
 <style scoped>
+/* AI实时分析结果卡片样式 */
+.analysis-result {
+  background: linear-gradient(135deg, #f6ffed 0%, #e6f7ff 100%);
+  border: 1px solid #b7eb8f;
+}
+
+.result-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.result-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.result-item .label {
+  font-weight: 600;
+  color: #666;
+  min-width: 100px;
+  margin-right: 16px;
+}
+
+.result-item .value {
+  font-size: 16px;
+  color: #333;
+  flex: 1;
+}
+
+/* AI养殖建议卡片样式 */
+.ai-advice-card {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%);
+  border: 1px solid #91d5ff;
+}
+
+.ai-advice-form {
+  margin-top: 16px;
+}
+
+.ai-advice-result {
+  margin-top: 20px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #1890ff;
+}
+
+.ai-advice-result h4 {
+  margin-top: 0;
+  color: #1890ff;
+  font-weight: 600;
+}
+
+.ai-advice-result p {
+  margin-bottom: 0;
+  line-height: 1.6;
+  color: #333;
+}
+
 /* AI控制面板样式 */
 .ai-control-panel {
   background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%);

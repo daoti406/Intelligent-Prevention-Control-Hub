@@ -27,6 +27,9 @@ export * from './povertyAI';
 // 备用API
 export * from './fallback';
 
+// 实时监测API
+export * from './realtime';
+
 // API工具类
 export { default as request } from '../utils/request';
 
