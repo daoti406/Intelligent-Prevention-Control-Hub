@@ -54,6 +54,19 @@ export function getAIAdvice(query, animal_type = '', context = '') {
   });
 }
 
+// AI对话接口（智栏卫士）
+export function sendAIChat(messages) {
+  return request({
+    url: '/api/ai/chat',
+    method: 'post',
+    timeout: 30000,
+    data: { messages }
+  }).catch(error => {
+    console.error("AI对话请求失败:", error);
+    return { reply: "网络异常，请检查后端服务是否启动" };
+  });
+}
+
 // 测试后端服务是否正常
 export function testBackend() {
   return request({
@@ -188,6 +201,7 @@ export default {
   getLatestResult,
   getHistory,
   getAIAdvice,
+  sendAIChat,
   getMonitorById,
   getMonitorStats,
   getHistoryRecords,

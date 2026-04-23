@@ -1,108 +1,66 @@
 <template>
   <div class="dashboard-container">
+    <!-- 欢迎横幅 -->
     <el-row :gutter="20" class="welcome-banner">
       <el-col :span="24">
         <el-card class="welcome-card">
           <div class="welcome-content">
             <div class="welcome-text">
-              <h1
-                style="
-                  font-size: 32px;
-                  margin: 0 0 10px 0;
-                  background: linear-gradient(135deg, #2e7d32 0%, #52c41a 100%);
-                  -webkit-background-clip: text;
-                  -webkit-text-fill-color: transparent;
-                  background-clip: text;
-                "
-              >
-                欢迎使用慧牧云眸系统
-              </h1>
-              <h2
-                style="
-                  font-size: 18px;
-                  color: #606266;
-                  margin: 0 0 20px 0;
-                  font-weight: 400;
-                "
-              >
-                实时监测畜禽健康，智能预警疫病风险
-              </h2>
+              <h1 class="welcome-title">慧牧云眸 · 畜禽智能防控平台</h1>
+              <p class="welcome-sub">AI驱动 · 实时监测 · 智能预警 · 精准防控</p>
               <div class="stats-overview">
                 <div class="stat-item">
-                  <span class="stat-value jumping-data" style="color: #fff">{{
-                    bannerStats.totalMonitoring
-                  }}</span>
+                  <span class="stat-value" style="color: #fff">{{ bannerStats.totalMonitoring }}</span>
                   <span class="stat-label">在线监测设备</span>
                 </div>
                 <div class="stat-item">
-                  <span
-                    class="stat-value jumping-data"
-                    style="color: #67c23a"
-                    >{{ bannerStats.healthRate }}</span
-                  >
+                  <span class="stat-value" style="color: #a5d6a7">{{ bannerStats.healthRate }}</span>
                   <span class="stat-label">平均健康率</span>
                 </div>
                 <div class="stat-item">
-                  <span
-                    class="stat-value jumping-data"
-                    style="color: #f56c6c"
-                    >{{ bannerStats.warningCount }}</span
-                  >
+                  <span class="stat-value" style="color: #ffcc80">{{ bannerStats.warningCount }}</span>
                   <span class="stat-label">当前预警</span>
                 </div>
               </div>
             </div>
-            <div class="weather-info">
-              <el-card class="weather-card">
-                <template #header>
-                  <div class="weather-header">
-                    <i class="fas fa-sun"></i>
-                    <span style="color: #2fcf6d; font-weight: bold"
-                      >环境监测</span
-                    >
-                    <br />
-                  </div>
-                </template>
-                <div class="weather-content">
-                  <div class="weather-item">
-                    <span class="weather-label">温度</span>
-                    <span class="weather-value">25.6°C</span>
-                  </div>
-                  <div class="weather-item">
-                    <span class="weather-label">湿度</span>
-                    <span class="weather-value">65%</span>
-                  </div>
-                  <div class="weather-item">
-                    <span class="weather-label">空气质量</span>
-                    <span class="weather-value">良好</span>
-                  </div>
-                </div>
-              </el-card>
-            </div>
-          </div>
-          <div class="system-intro">
-            <div class="intro-content">
-              <div class="intro-icon"></div>
-              <div class="intro-text">
-                <p>
-                  采用AI+物联网技术，大数据科学分析，让养殖管理更智能，
-                  环境自动监控到健康智能分析，再到疫病提前预警与科学决策支持，
-                  帮助养殖户降本增效，保障畜禽健康。
-                </p>
-              </div>
+            <div class="banner-actions">
+              <el-button type="success" size="large" @click="goToAISentinel">
+                <i class="fas fa-robot"></i>&nbsp;智栏卫士 AI 对话
+              </el-button>
+              <el-button type="warning" size="large" @click="goToWarning">
+                <i class="fas fa-bell"></i>&nbsp;查看预警中心
+              </el-button>
             </div>
           </div>
         </el-card>
       </el-col>
     </el-row>
 
+    <!-- 核心数据指标 -->
+    <el-row :gutter="20" class="stats-row">
+      <el-col :xs="12" :sm="6" v-for="(stat, index) in dataStats" :key="index">
+        <el-card class="stat-card" shadow="hover">
+          <div class="stat-card-inner">
+            <div class="stat-icon" :class="'icon-' + stat.type">
+              <i :class="statIcons[index]"></i>
+            </div>
+            <div class="stat-info">
+              <div class="stat-card-value">{{ stat.value }}</div>
+              <div class="stat-card-label">{{ stat.label }}</div>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <!-- 图表区域 -->
     <el-row :gutter="20" class="charts-row">
       <el-col :xs="24" :sm="12" :lg="8">
         <el-card class="chart-card">
           <template #header>
             <div class="chart-header">
               <i class="fas fa-chart-line"></i>
-              <span>健康趋势</span>
+              <span>健康趋势（近7天）</span>
             </div>
           </template>
           <div class="chart-container" id="healthChart"></div>
@@ -113,7 +71,7 @@
           <template #header>
             <div class="chart-header">
               <i class="fas fa-exclamation-triangle"></i>
-              <span>预警分布</span>
+              <span>预警类型分布</span>
             </div>
           </template>
           <div class="chart-container" id="warningChart"></div>
@@ -124,7 +82,7 @@
           <template #header>
             <div class="chart-header">
               <i class="fas fa-chart-bar"></i>
-              <span>养殖规模</span>
+              <span>各区存栏数量</span>
             </div>
           </template>
           <div class="chart-container" id="scaleChart"></div>
@@ -132,117 +90,58 @@
       </el-col>
     </el-row>
 
-    <!-- 普惠AI创新功能展示区 -->
-    <el-row :gutter="20" class="ai-features-row">
-      <el-col :span="24">
-        <el-card class="ai-features-card">
+    <!-- AI功能入口 + 最新通知 -->
+    <el-row :gutter="20" class="bottom-row">
+      <!-- AI功能快捷入口 -->
+      <el-col :xs="24" :md="12">
+        <el-card class="ai-entry-card">
           <template #header>
-            <div class="ai-features-header">
-              <i class="el-icon-star" style="color: #2e7d32"></i>
-              <span style="color: #2e7d32; font-weight: bold"
-                >普惠AI创新功能</span
-              >
-              <span style="font-size: 14px; color: #666; margin-left: 10px"
-                >· 专为中小养殖场设计的智能技术革命</span
-              >
+            <div class="chart-header">
+              <i class="fas fa-brain" style="color: #2e7d32"></i>
+              <span>AI 核心功能</span>
             </div>
           </template>
-          <div class="ai-features-content">
-            <el-row :gutter="20">
-              <el-col :xs="24" :sm="8" :lg="6">
-                <div class="ai-feature-item">
-                  <div class="feature-icon cost-saving">
-                    <i class="el-icon-money"></i>
-                  </div>
-                  <div class="feature-content">
-                    <h4>成本降低70%</h4>
-                    <p>AI视觉替代传统传感器，硬件投资从¥15,000降至¥5,000</p>
-                    <div class="feature-stats">
-                      <span class="stat-value">¥10,000+</span>
-                      <span class="stat-label">年节省</span>
-                    </div>
-                  </div>
-                </div>
-              </el-col>
-
-              <el-col :xs="24" :sm="8" :lg="6">
-                <div class="ai-feature-item">
-                  <div class="feature-icon intelligence">
-                    <i class="el-icon-cpu"></i>
-                  </div>
-                  <div class="feature-content">
-                    <h4>小样本学习</h4>
-                    <p>每疾病类别仅需3-5个样本，训练个性化识别模型</p>
-                    <div class="feature-stats">
-                      <span class="stat-value">85%+</span>
-                      <span class="stat-label">准确率</span>
-                    </div>
-                  </div>
-                </div>
-              </el-col>
-
-              <el-col :xs="24" :sm="8" :lg="6">
-                <div class="ai-feature-item">
-                  <div class="feature-icon easy-use">
-                    <i class="el-icon-user"></i>
-                  </div>
-                  <div class="feature-content">
-                    <h4>零技术门槛</h4>
-                    <p>三步向导快速部署，农民亦可轻松使用AI技术</p>
-                    <div class="feature-stats">
-                      <span class="stat-value">3步</span>
-                      <span class="stat-label">快速开始</span>
-                    </div>
-                  </div>
-                </div>
-              </el-col>
-
-              <el-col :xs="24" :sm="8" :lg="6">
-                <div class="ai-feature-item">
-                  <div class="feature-icon performance">
-                    <i class="el-icon-trophy"></i>
-                  </div>
-                  <div class="feature-content">
-                    <h4>实时监控</h4>
-                    <p>视觉分析速度&lt;1秒，确保及时预警疫病风险</p>
-                    <div class="feature-stats">
-                      <span class="stat-value">&lt;1秒</span>
-                      <span class="stat-label">响应时间</span>
-                    </div>
-                  </div>
-                </div>
-              </el-col>
-            </el-row>
-
-            <div class="ai-actions">
-              <el-button type="primary" @click="goToAIFeatures" size="large">
-                <i class="el-icon-magic-stick"></i>
-                体验普惠AI功能
-              </el-button>
-              <el-button type="success" @click="viewCostBenefits" size="large">
-                <i class="el-icon-pie-chart"></i>
-                查看成本效益分析
-              </el-button>
+          <div class="ai-entry-grid">
+            <div class="ai-entry-item" @click="goToAISentinel">
+              <div class="entry-icon" style="background: linear-gradient(135deg, #43a047, #66bb6a)">
+                <i class="fas fa-comments"></i>
+              </div>
+              <div class="entry-label">智栏卫士对话</div>
+              <div class="entry-desc">AI实时问答 · 养殖建议</div>
+            </div>
+            <div class="ai-entry-item" @click="goToMonitor">
+              <div class="entry-icon" style="background: linear-gradient(135deg, #1976d2, #42a5f5)">
+                <i class="fas fa-video"></i>
+              </div>
+              <div class="entry-label">实时监控</div>
+              <div class="entry-desc">AI视觉分析 · 行为识别</div>
+            </div>
+            <div class="ai-entry-item" @click="goToWarning">
+              <div class="entry-icon" style="background: linear-gradient(135deg, #e65100, #ff8a65)">
+                <i class="fas fa-shield-alt"></i>
+              </div>
+              <div class="entry-label">智能预警</div>
+              <div class="entry-desc">疫病预测 · 风险评估</div>
+            </div>
+            <div class="ai-entry-item" @click="goToKnowledge">
+              <div class="entry-icon" style="background: linear-gradient(135deg, #6a1b9a, #ab47bc)">
+                <i class="fas fa-book-open"></i>
+              </div>
+              <div class="entry-label">防疫知识库</div>
+              <div class="entry-desc">疾病防控 · 养殖技术</div>
             </div>
           </div>
         </el-card>
       </el-col>
-    </el-row>
 
-    <!-- 性能监控仪表板 -->
-    <el-row :gutter="20" class="performance-row">
-      <el-col :span="24">
-        <PerformanceDashboard ref="performanceDashboard" />
-      </el-col>
-    </el-row>
-
-    <el-row id="notifications-section" :gutter="20" class="quick-actions-row">
-      <el-col :span="24">
-        <el-card class="notifications-card" style="height: 100%">
+      <!-- 最新通知 -->
+      <el-col :xs="24" :md="12">
+        <el-card id="notifications-section" class="notifications-card">
           <template #header>
-            <div class="notifications-header">
+            <div class="chart-header">
               <i class="fas fa-bell"></i>
               <span>最新通知</span>
+              <el-badge :value="unreadCount" :max="9" class="ml-auto" v-if="unreadCount > 0" />
             </div>
           </template>
           <div class="notifications-list">
@@ -252,31 +151,25 @@
               class="notification-item"
               :class="{ unread: !item.read }"
             >
+              <div class="notification-dot" :class="item.type"></div>
               <div class="notification-content">
                 <div class="notification-title">{{ item.title }}</div>
                 <div class="notification-time">{{ item.time }}</div>
               </div>
               <div class="notification-actions">
-                <el-tag :type="item.type" size="small">{{
-                  item.status
-                }}</el-tag>
+                <el-tag :type="item.type" size="small">{{ item.status }}</el-tag>
                 <el-button
                   v-if="!item.read"
                   link
                   type="primary"
                   size="small"
                   @click="markNotificationAsRead(item)"
-                >
-                  标记已读
-                </el-button>
-                <span v-else class="notification-read-state">已读</span>
+                >已读</el-button>
               </div>
             </div>
           </div>
-          <div class="mt-4 text-center">
-            <el-button type="text" @click="goToWarning"
-              >查看全部预警 <i class="el-icon-arrow-right"></i
-            ></el-button>
+          <div class="text-center mt-3">
+            <el-button type="primary" link @click="goToWarning">查看全部预警 →</el-button>
           </div>
         </el-card>
       </el-col>
@@ -287,7 +180,6 @@
 <script setup>
 import { computed, inject } from "vue";
 import { useRouter } from "vue-router";
-import PerformanceDashboard from "./PerformanceDashboard.vue";
 
 const router = useRouter();
 
@@ -302,185 +194,322 @@ const bannerStats = computed(() => ({
   warningCount: dataStats?.value?.[2]?.value || "4",
 }));
 
-const goToAIFeatures = () => {
-  router.push("/ai-panel");
-};
+const unreadCount = computed(() =>
+  notifications?.value?.filter(n => !n.read).length || 0
+);
 
-const viewCostBenefits = () => {
-  router.push("/performance");
-};
+const statIcons = [
+  "fas fa-satellite-dish",
+  "fas fa-exclamation-circle",
+  "fas fa-bell",
+  "fas fa-heartbeat",
+];
+
+const goToAISentinel = () => router.push("/ai-sentinel");
+const goToMonitor = () => router.push("/monitor");
+const goToKnowledge = () => router.push("/knowledge");
 </script>
 
 <style scoped>
-.suggestion-item h4 {
-  margin: 0 0 8px 0;
-  color: #303133;
-}
-.suggestion-item p {
-  margin: 0;
-  color: #606266;
-  font-size: 14px;
-  line-height: 1.6;
-}
-.intro-text p {
-  color: #fff;
-  opacity: 0.9;
-}
-.weather-item {
-  color: #fff;
-  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
-}
-.weather-label {
-  color: rgba(255, 255, 255, 0.8);
-}
-.weather-value {
-  color: #fff;
+.dashboard-container {
+  padding: 0;
 }
 
-.jumping-data {
-  display: inline-block;
-  animation: jump 2s ease-in-out infinite;
-}
-
-@keyframes jump {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-.stat-item:nth-child(2) .jumping-data {
-  animation-delay: 0.3s;
-}
-
-.stat-item:nth-child(3) .jumping-data {
-  animation-delay: 0.6s;
-}
-
-@media (max-width: 768px) {
-}
-
-.notification-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-}
-
-.notification-read-state {
-  font-size: 12px;
-  color: #909399;
-}
-
-/* 普惠AI功能样式 */
-.ai-features-card {
-  border: 1px solid #66bb6a;
-  background: linear-gradient(135deg, #f1f8e9 0%, #e8f5e8 100%);
-}
-
-.ai-features-header {
-  display: flex;
-  align-items: center;
-}
-
-.ai-features-content {
-  padding: 20px 0;
-}
-
-.ai-feature-item {
-  background: white;
+/* 欢迎横幅 */
+.welcome-card {
+  background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 50%, #388e3c 100%);
+  border: none;
   border-radius: 12px;
-  padding: 20px;
-  text-align: center;
-  border: 1px solid #e8e8e8;
-  transition: all 0.3s ease;
-  height: 100%;
+  overflow: hidden;
 }
 
-.ai-feature-item:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(76, 175, 80, 0.2);
+.welcome-card :deep(.el-card__body) {
+  padding: 32px 40px;
 }
 
-.feature-icon {
-  font-size: 40px;
-  margin-bottom: 15px;
+.welcome-content {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
 }
 
-.feature-icon.cost-saving {
-  color: #f56c6c;
-}
-.feature-icon.intelligence {
-  color: #67c23a;
-}
-.feature-icon.easy-use {
-  color: #409eff;
-}
-.feature-icon.performance {
-  color: #e6a23c;
+.welcome-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 8px 0;
+  letter-spacing: 1px;
 }
 
-.feature-content h4 {
-  margin: 0 0 10px 0;
-  color: #333;
-  font-size: 16px;
+.welcome-sub {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0 0 24px 0;
+  letter-spacing: 2px;
 }
 
-.feature-content p {
-  margin: 0 0 15px 0;
-  color: #666;
-  font-size: 13px;
-  line-height: 1.4;
+.stats-overview {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
 }
 
-.feature-stats {
+.stat-item {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-.feature-stats .stat-value {
-  font-size: 20px;
-  font-weight: bold;
-  color: #ff6b6b;
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
 }
 
-.feature-stats .stat-label {
+.stat-label {
   font-size: 12px;
-  color: #999;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 4px;
 }
 
-.ai-actions {
-  margin-top: 30px;
-  text-align: center;
+.banner-actions {
   display: flex;
-  justify-content: center;
-  gap: 20px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
-.performance-row {
+/* 统计卡片 */
+.stats-row {
   margin-top: 20px;
 }
 
+.stat-card {
+  border-radius: 10px;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card-inner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 4px 0;
+}
+
+.stat-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.stat-icon.icon-success {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.stat-icon.icon-warning {
+  background: #fff8e1;
+  color: #f57c00;
+}
+
+.stat-icon.icon-error {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.stat-card-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #303133;
+  line-height: 1;
+}
+
+.stat-card-label {
+  font-size: 13px;
+  color: #909399;
+  margin-top: 4px;
+}
+
+/* 图表 */
+.charts-row {
+  margin-top: 20px;
+}
+
+.chart-card {
+  border-radius: 10px;
+  height: 100%;
+}
+
+.chart-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.chart-container {
+  height: 220px;
+}
+
+/* 底部区域 */
+.bottom-row {
+  margin-top: 20px;
+}
+
+/* AI功能入口 */
+.ai-entry-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.ai-entry-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 12px;
+  border-radius: 10px;
+  border: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.ai-entry-item:hover {
+  border-color: #4caf50;
+  box-shadow: 0 4px 16px rgba(76, 175, 80, 0.15);
+  transform: translateY(-2px);
+}
+
+.entry-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  color: #fff;
+  margin-bottom: 10px;
+}
+
+.entry-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 4px;
+}
+
+.entry-desc {
+  font-size: 12px;
+  color: #909399;
+}
+
+/* 通知 */
+.notifications-card {
+  border-radius: 10px;
+  height: 100%;
+}
+
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.notification-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fafafa;
+  border: 1px solid #f0f0f0;
+  transition: background 0.2s;
+}
+
+.notification-item.unread {
+  background: #f0f7ff;
+  border-color: #d0e8ff;
+}
+
+.notification-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.notification-dot.warning { background: #faad14; }
+.notification-dot.success { background: #52c41a; }
+.notification-dot.info { background: #1890ff; }
+
+.notification-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-title {
+  font-size: 13px;
+  color: #303133;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.notification-time {
+  font-size: 12px;
+  color: #909399;
+  margin-top: 2px;
+}
+
+.notification-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.ml-auto {
+  margin-left: auto;
+}
+
+.mt-3 {
+  margin-top: 12px;
+}
+
+.text-center {
+  text-align: center;
+}
+
 @media (max-width: 768px) {
-  .ai-feature-item {
-    margin-bottom: 15px;
+  .welcome-card :deep(.el-card__body) {
+    padding: 20px;
   }
-
-  .ai-actions {
+  .welcome-title {
+    font-size: 20px;
+  }
+  .welcome-content {
     flex-direction: column;
-    align-items: center;
   }
-
-  .ai-actions .el-button {
+  .banner-actions {
     width: 100%;
-    max-width: 300px;
+  }
+  .ai-entry-grid {
+    grid-template-columns: 1fr 1fr;
   }
 }
 </style>

@@ -25,10 +25,10 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'huimuyunmu-secret-key-2024'
 
 # AI模型API配置
-# 使用用户提供的 Qwen2.5-7B-Instruct 模型
+# 使用用户提供的 DeepSeek/千问 等兼容OpenAI格式的模型
 AI_API_KEY = os.environ.get('AI_API_KEY', '')
-AI_API_URL = os.environ.get('AI_API_URL', 'https://api.siliconflow.cn/v1/chat/completions')
-AI_MODEL = os.environ.get('AI_MODEL', 'Qwen/Qwen2.5-7B-Instruct')
+AI_API_URL = os.environ.get('AI_API_URL', 'https://api.deepseek.com/v1/chat/completions')
+AI_MODEL = os.environ.get('AI_MODEL', 'deepseek-chat')
 
 db = SQLAlchemy(app)
 
@@ -894,35 +894,99 @@ def get_history():
     } for record in records])
 
 
-# --- AI养殖建议 --- 
+# --- AI养殖建议与对话 --- 
 @app.route('/api/ai/advice', methods=['POST'])
 def get_ai_advice():
     """获取AI生成的养殖建议"""
     try:
-        # 尝试使用 request.get_json() 获取请求数据
-        try:
-            data = request.get_json()
-            query = data.get('query', '')
-            animal_type = data.get('animal_type', '猪')  # 默认动物类型为猪
-            context = data.get('context', '')
-        except:
-            # 如果获取不到 JSON 数据，使用 request.form
-            query = request.form.get('query', '')
-            animal_type = request.form.get('animal_type', '猪')  # 默认动物类型为猪
-            context = request.form.get('context', '')
+        data = request.get_json() or {}
+        query = data.get('query', '')
+        animal_type = data.get('animal_type', '猪')
+        context = data.get('context', '')
         
-        # 根据查询内容返回相应的建议
-        if '产奶量' in query:
-            return jsonify({'advice': '提高奶牛产奶量的具体措施：\n1. 合理饲养：提供均衡的营养饲料，保证蛋白质和能量摄入\n2. 科学挤奶：保持挤奶设备清洁，采用正确的挤奶方法\n3. 舒适环境：保持牛舍清洁干燥，温度适宜\n4. 健康管理：定期检查乳房健康，预防乳房炎\n5. 适当运动：保证奶牛有足够的活动空间'})
-        elif '鸡' in query and '疾病' in query:
-            return jsonify({'advice': '预防鸡群疾病的具体措施：\n1. 疫苗接种：按照免疫程序接种相关疫苗\n2. 环境消毒：定期对鸡舍进行消毒，保持清洁\n3. 饲料管理：使用优质饲料，确保营养均衡\n4. 温度控制：保持鸡舍温度适宜，避免温差过大\n5. 密度控制：合理控制饲养密度，避免过度拥挤'})
+        if not AI_API_KEY:
+            return jsonify({'advice': '请在环境变量中配置 AI_API_KEY 才能使用真实的AI功能。目前返回的是模拟数据。'})
+            
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {AI_API_KEY}'
+        }
+        
+        system_prompt = f"你是一个专业的畜牧兽医专家，现在针对{animal_type}的养殖问题提供专业、准确、可操作的建议。如果用户提供了上下文信息，请结合上下文回答。"
+        user_prompt = f"问题：{query}\n"
+        if context:
+            user_prompt += f"现场上下文数据：{context}\n"
+            
+        payload = {
+            'model': AI_MODEL,
+            'messages': [
+                {'role': 'system', 'content': system_prompt},
+                {'role': 'user', 'content': user_prompt}
+            ],
+            'temperature': 0.7,
+            'max_tokens': 800
+        }
+        
+        response = requests.post(AI_API_URL, headers=headers, json=payload, timeout=30)
+        response.raise_for_status()
+        
+        result = response.json()
+        if 'choices' in result and len(result['choices']) > 0:
+            advice = result['choices'][0]['message']['content']
+            return jsonify({'advice': advice})
         else:
-            # 对于其他问题，返回猪瘟的建议
-            return jsonify({'advice': '预防猪瘟的具体措施：\n1. 严格生物安全：限制人员和车辆进出，定期消毒\n2. 疫苗接种：按照免疫程序接种猪瘟疫苗\n3. 日常管理：保持猪舍清洁干燥，合理饲养密度\n4. 监测隔离：定期监测猪群健康状况，发现异常及时隔离\n5. 饲料管理：使用优质饲料，避免使用泔水'})
+            return jsonify({'advice': 'AI服务返回异常，请稍后重试。'})
             
     except Exception as e:
         print(f"AI建议生成失败: {str(e)}")
-        return jsonify({'advice': '抱歉，生成建议时出现错误，请稍后重试。'})
+        return jsonify({'advice': f'抱歉，生成建议时出现错误：{str(e)}'})
+
+@app.route('/api/ai/chat', methods=['POST'])
+def ai_chat():
+    """处理智栏卫士AI对话"""
+    try:
+        data = request.get_json() or {}
+        messages = data.get('messages', [])
+        
+        if not messages:
+            return jsonify({'reply': '请提供对话内容'})
+            
+        if not AI_API_KEY:
+            return jsonify({'reply': '请在后端配置AI大模型的API KEY (AI_API_KEY)。当前为未配置状态。'})
+            
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {AI_API_KEY}'
+        }
+        
+        # 构建给大模型的messages，注入系统提示词
+        system_msg = {
+            "role": "system", 
+            "content": "你叫'智栏卫士'，是畜牧智能防控平台的AI助手。你精通畜禽养殖、疫病防控、环境调节。你的回答应该专业、简洁，不要长篇大论，适合在聊天窗口中阅读。"
+        }
+        
+        api_messages = [system_msg] + messages
+        
+        payload = {
+            'model': AI_MODEL,
+            'messages': api_messages,
+            'temperature': 0.7,
+            'max_tokens': 800
+        }
+        
+        response = requests.post(AI_API_URL, headers=headers, json=payload, timeout=30)
+        response.raise_for_status()
+        
+        result = response.json()
+        if 'choices' in result and len(result['choices']) > 0:
+            reply = result['choices'][0]['message']['content']
+            return jsonify({'reply': reply})
+        else:
+            return jsonify({'reply': 'AI服务未返回有效内容'})
+            
+    except Exception as e:
+        print(f"AI对话请求失败: {str(e)}")
+        return jsonify({'reply': f'网络或API请求异常：{str(e)}'})
 
 
 # ==================== 启动配置 ====================

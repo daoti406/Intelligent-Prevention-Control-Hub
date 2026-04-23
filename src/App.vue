@@ -42,6 +42,7 @@ import Profile from "./components/Profile.vue";
 import RanchManagement from "./components/RanchManagement.vue";
 import { getDashboardStats, getNotifications } from "./api/dashboard";
 import { getWarnings } from "./api/warning";
+import { sendAIChat } from "./api/realtime";
 
 const router = useRouter();
 const route = useRoute();
@@ -564,36 +565,46 @@ const syncOfficialData = () => {
 
 const aiAnalysisResult = ref(null);
 const aiLoading = ref(false);
-const fetchAIAnalysis = () => {
+const fetchAIAnalysis = async () => {
   aiLoading.value = true;
-  setTimeout(() => {
+  try {
+    // 构建当前监测数据摘要
+    const stats = dataStats.value;
+    const warnings = warningList.value.filter(w => w.status !== '已处理').slice(0, 3);
+    const warningDesc = warnings.map(w => `${w.location}:${w.type}`).join('、') || '暂无待处理预警';
+    
+    const prompt = `请根据以下畜禽养殖场实时监测数据，生成一份简洁的AI分析报告（200字以内）：
+- 在线监测设备：${stats[0]?.value || 24}台
+- 当前异常数量：${stats[1]?.value || 0}个
+- 当前预警数量：${stats[2]?.value || 0}个
+- 平均健康率：${stats[3]?.value || '97.8%'}
+- 待处理预警：${warningDesc}
+请给出：1）当前整体状态评估；2）需要重点关注的问题；3）具体处置建议。`;
+    
+    const result = await sendAIChat([{ role: 'user', content: prompt }]);
+    const text = result.reply || '暂时无法获取AI分析，请检查后端服务和API配置。';
+    
+    // 将换行转为HTML
+    const htmlContent = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\n/g, '<br/>');
+    
     aiAnalysisResult.value = `
       <div class="ai-report">
         <div class="ai-report-header">
-          <h4 style="color: #2e7d32; margin-top: 0;"><i class="fas fa-microchip"></i> 智栏 AI 深度数据洞察报告 (2025)</h4>
-          <p style="font-size: 12px; color: #999;">分析引擎：Sentinel-AI v4.2 | 分析时间：${new Date().toLocaleString()}</p>
+          <h4 style="color: #2e7d32; margin-top: 0;"><i class="fas fa-microchip"></i> 智栏 AI 综合分析报告</h4>
+          <p style="font-size: 12px; color: #999;">分析时间：${new Date().toLocaleString()}</p>
         </div>
-        <el-divider></el-divider>
-        <div class="ai-report-section">
-          <h5 style="color: #e6a23c;"><i class="fas fa-bullseye"></i> 最直观影响分析</h5>
-          <p>根据近一年的数据追踪，<strong>呼吸道感染</strong>在春季（3-4月）呈现明显的季节性爆发特征，发病率同比上升了 <strong>15.2%</strong>。这直接导致了该阶段畜禽的平均日增重下降了 <strong>8.5%</strong>，对整体养殖效益产生了显著的负面影响。</p>
-        </div>
-        <div class="ai-report-section">
-          <h5 style="color: #409eff;"><i class="fas fa-filter"></i> 核心数据影响因素</h5>
-          <ul style="padding-left: 20px; line-height: 1.8;">
-            <li><strong>温差波动：</strong>3月份昼夜温差超过 12°C 的天数占 65%，是诱发呼吸道疾病的首要环境因素。</li>
-            <li><strong>氨气浓度：</strong>监测数据显示，当舍内氨气浓度超过 20ppm 时，24小时内出现行为异常的比例提升了 40%。</li>
-            <li><strong>湿度关联：</strong>高湿度（>75%）环境下，皮肤寄生虫的检出率与湿度呈现 0.82 的强正相关性。</li>
-          </ul>
-        </div>
-        <div class="ai-report-section">
-          <h5 style="color: #67c23a;"><i class="fas fa-lightbulb"></i> 智能化改进建议</h5>
-          <p>建议在下个季度加强 <strong>A区</strong> 的通风自动化控制逻辑，将氨气阈值从 25ppm 调低至 18ppm，并引入基于 AI 的<strong>咳嗽声监测系统</strong>，以实现呼吸道疾病的早期预警（比肉眼观察提前约 48 小时）。</p>
-        </div>
+        <div class="ai-report-section" style="line-height:1.8;">${htmlContent}</div>
       </div>
     `;
+  } catch (err) {
+    aiAnalysisResult.value = '<p style="color:#f56c6c;">AI分析失败，请检查后端服务是否启动及API KEY是否配置。</p>';
+  } finally {
     aiLoading.value = false;
-  }, 1500);
+  }
 };
 
 const loadDashboardStats = async (silent = true) => {
@@ -712,6 +723,7 @@ const handleCommand = (command) => {
 };
 const goToMonitor = () => {
   activeIndex.value = "monitor";
+  router.push("/monitor");
   nextTick(initCharts);
 };
 const goToData = () => {
@@ -726,6 +738,7 @@ const goToWarning = () => {
 };
 const goToKnowledgeBase = () => {
   activeIndex.value = "knowledge";
+  router.push("/knowledge");
   nextTick(initCharts);
 };
 const goToReport = () => ElMessage.info("生成报告功能开发中");
@@ -1052,6 +1065,7 @@ provide("goToMonitor", goToMonitor);
 provide("goToData", goToData);
 provide("goToWarning", goToWarning);
 provide("goToKnowledgeBase", goToKnowledgeBase);
+provide("goToKnowledge", goToKnowledgeBase);
 provide("goToReport", goToReport);
 provide("goToEnvControl", goToEnvControl);
 provide("goToHealthAnalysis", goToHealthAnalysis);

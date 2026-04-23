@@ -467,6 +467,7 @@
 <script setup>
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { ElMessage } from "element-plus";
+import { sendAIChat } from "@/api/realtime";
 
 const dataStats = inject("dataStats");
 const exportData = inject("exportData");
@@ -808,11 +809,21 @@ const sendChatMessage = async (presetMessage) => {
   scrollChatToBottom();
 
   try {
-    await new Promise((resolve) => setTimeout(resolve, 900));
-    const reply = buildMockAIReply(content);
+    // 构建发送给后端的历史消息（只发最近10条，节约token）
+    const historyMessages = chatMessages.value
+      .slice(-10)
+      .filter(m => m.role === 'user' || m.role === 'assistant')
+      .map(m => ({ role: m.role, content: m.content }));
+    
+    const result = await sendAIChat(historyMessages);
+    const reply = result.reply || buildMockAIReply(content);
     appendChatMessage("assistant", reply);
     scrollChatToBottom();
     speakReply(reply);
+  } catch (err) {
+    const reply = buildMockAIReply(content);
+    appendChatMessage("assistant", reply);
+    scrollChatToBottom();
   } finally {
     chatLoading.value = false;
   }
