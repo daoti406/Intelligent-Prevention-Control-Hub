@@ -8,7 +8,7 @@
           style="height: 50px"
         />
         <h1 class="app-title">慧牧云眸</h1>
-        <span class="app-subtitle">畜禽健康智能防控中枢系统</span>
+        <span class="app-subtitle">基于AI的畜禽健康智能预警系统</span>
       </div>
       <el-menu
         mode="horizontal"
@@ -28,7 +28,7 @@
       >
         <el-menu-item index="dashboard">首页</el-menu-item>
         <el-menu-item index="monitor">实时监控</el-menu-item>
-        <el-menu-item index="ai-sentinel">智栏卫士</el-menu-item>
+        <el-menu-item index="ai-sentinel">慧牧AI助手</el-menu-item>
         <el-menu-item index="warning">预警中心</el-menu-item>
         <el-menu-item index="knowledge">防疫知识</el-menu-item>
       </el-menu>

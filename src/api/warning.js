@@ -17,7 +17,7 @@ export function updateWarningStatus(id, data) {
   });
 }
 
-// 获取适合普惠AI处理的预警列表
+// 获取适合mmcow视觉AI处理的预警列表
 export function getAISuitableWarnings() {
   return request({
     url: "/api/warning/ai-suitable",
@@ -25,7 +25,7 @@ export function getAISuitableWarnings() {
   });
 }
 
-// 使用普惠AI处理预警
+// 使用mmcow视觉AI处理预警
 export function handleWarningWithAI(warningId, options = {}) {
   return request({
     url: `/api/warning/${warningId}/handle-with-ai`,
@@ -34,7 +34,7 @@ export function handleWarningWithAI(warningId, options = {}) {
   });
 }
 
-// 获取普惠AI预警分析统计
+// 获取mmcow视觉AI预警分析统计
 export function getAIWarningStats() {
   return request({
     url: "/api/warning/ai-stats",
@@ -51,7 +51,7 @@ export function getWarningTrendAnalysis(days = 30) {
   });
 }
 
-// 普惠AI预警配置
+// mmcow视觉AI预警配置
 export function getAIConfig() {
   return request({
     url: "/api/warning/ai-config",

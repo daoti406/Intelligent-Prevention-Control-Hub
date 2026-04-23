@@ -22,7 +22,7 @@ export function getCameras() {
   });
 }
 
-// 获取普惠AI统计数据
+// 获取mmcow视觉AI统计数据（MOCK模拟）
 export function getPovertyDashboardStats() {
   return request({
     url: "/api/poverty-ai/stats",
@@ -30,7 +30,7 @@ export function getPovertyDashboardStats() {
   });
 }
 
-// 获取综合仪表盘数据（包含普惠AI统计）
+// 获取综合仪表盘数据（包含mmcow视觉AI统计）
 export function getComprehensiveDashboardData() {
   return Promise.all([
     getDashboardStats(),

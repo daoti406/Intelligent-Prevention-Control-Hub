@@ -21,7 +21,7 @@ export * from './knowledge';
 // 牧场相关API
 export * from './ranch';
 
-// 普惠AI相关API
+// mmcow视觉AI相关API（兼容保留）
 export * from './povertyAI';
 
 // 备用API
@@ -43,7 +43,7 @@ export async function checkAPIStatus() {
     const checkPoints = [
       { name: '认证服务', api: () => getCurrentUser() },
       { name: '预警服务', api: () => getWarnings({ limit: 1 }) },
-      { name: '普惠AI服务', api: () => getPovertyAIStats() }
+      { name: 'mmcow视觉AI服务', api: () => getPovertyAIStats() }
     ];
     
     const results = await Promise.allSettled(
@@ -120,7 +120,7 @@ export const API_VERSION = {
     version: '2.0.0',
     endpoints: ['/poverty-ai', '/edge-computing', '/cost-analysis'],
     deprecated: false,
-    features: ['普惠AI分析', '边缘计算', '成本优化']
+    features: ['mmcow视觉分析', 'DeepSeek大模型', '健康预警']
   }
 };
 
@@ -143,7 +143,7 @@ export default {
   // 牧场
   ...require('./ranch'),
   
-  // 普惠AI
+  // mmcow视觉AI（兼容保留）
   ...require('./povertyAI'),
   
   // 工具类

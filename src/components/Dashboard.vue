@@ -6,8 +6,8 @@
         <el-card class="welcome-card">
           <div class="welcome-content">
             <div class="welcome-text">
-              <h1 class="welcome-title">慧牧云眸 · 畜禽智能防控平台</h1>
-              <p class="welcome-sub">AI驱动 · 实时监测 · 智能预警 · 精准防控</p>
+              <h1 class="welcome-title">慧牧云眸 — 基于AI的畜禽健康智能预警系统</h1>
+              <p class="welcome-sub">AI大模型驱动 · mmcow多模态视觉分析 · 实时健康监测 · 智能预警预防</p>
               <div class="stats-overview">
                 <div class="stat-item">
                   <span class="stat-value" style="color: #fff">{{ bannerStats.totalMonitoring }}</span>
@@ -25,7 +25,7 @@
             </div>
             <div class="banner-actions">
               <el-button type="success" size="large" @click="goToAISentinel">
-                <i class="fas fa-robot"></i>&nbsp;智栏卫士 AI 对话
+                <i class="fas fa-robot"></i>&nbsp;慧牧AI助手对话
               </el-button>
               <el-button type="warning" size="large" @click="goToWarning">
                 <i class="fas fa-bell"></i>&nbsp;查看预警中心
@@ -106,8 +106,8 @@
               <div class="entry-icon" style="background: linear-gradient(135deg, #43a047, #66bb6a)">
                 <i class="fas fa-comments"></i>
               </div>
-              <div class="entry-label">智栏卫士对话</div>
-              <div class="entry-desc">AI实时问答 · 养殖建议</div>
+              <div class="entry-label">慧牧AI助手</div>
+              <div class="entry-desc">AI实时问答 · 健康预警建议</div>
             </div>
             <div class="ai-entry-item" @click="goToMonitor">
               <div class="entry-icon" style="background: linear-gradient(135deg, #1976d2, #42a5f5)">

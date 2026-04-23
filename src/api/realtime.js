@@ -54,7 +54,7 @@ export function getAIAdvice(query, animal_type = '', context = '') {
   });
 }
 
-// AI对话接口（智栏卫士）
+// AI对话接口（慧牧AI助手）
 export function sendAIChat(messages) {
   return request({
     url: '/api/ai/chat',
@@ -172,7 +172,7 @@ export function getKnowledge(params) {
   });
 }
 
-// 获取普惠AI统计
+// 获取mmcow视觉AI统计（MOCK数据）
 export function getPovertyAIStats() {
   return request({
     url: '/api/poverty-ai/stats',

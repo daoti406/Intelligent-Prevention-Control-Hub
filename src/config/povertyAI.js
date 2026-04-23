@@ -1,11 +1,11 @@
 /**
- * 普惠AI系统配置
+ * mmcow视觉AI系统配置
  * 基于视觉传感器替代技术，实现成本优化的普惠农业AI方案
  */
 
 export const POVERTY_AI_CONFIG = {
   // 基础配置
-  name: "慧牧云眸-普惠AI系统",
+  name: "慧牧云眸-mmcow视觉AI系统",
   version: "2.0.0",
   
   // 视觉传感器替代技术配置
@@ -40,7 +40,7 @@ export const POVERTY_AI_CONFIG = {
   costOptimization: {
     hardwareSaving: {
       traditional: 15000, // 传统传感器投入 ¥15,000
-      povertyAI: 5000,    // 普惠AI设备投入 ¥5,000
+      povertyAI: 5000,    // mmcow视觉AI设备投入 ¥5,000
       savingPercent: 66.7  // 节省66.7%
     },
     deploymentScenarios: {
@@ -107,7 +107,7 @@ export const POVERTY_AI_CONFIG = {
   
   // 预警阈值配置
   warningThresholds: {
-    // 适合普惠AI处理的预警类型
+    // 适合mmcow视觉AI处理的预警类型
     suitableTypes: [
       "温度异常",
       "湿度异常", 
@@ -144,7 +144,7 @@ export const POVERTY_AI_CONFIG = {
   }
 };
 
-// 普惠AI分析类型定义
+// mmcow视觉AI分析类型定义
 export const POVERTY_AI_ANALYSIS_TYPES = {
   COST_SAVING: 'cost_saving',
   RISK_ASSESSMENT: 'risk_assessment',
@@ -153,7 +153,7 @@ export const POVERTY_AI_ANALYSIS_TYPES = {
   ENVIRONMENT_OPTIMIZATION: 'environment_optimization'
 };
 
-// 普惠AI处理结果类型
+// mmcow视觉AI处理结果类型
 export const POVERTY_AI_ACTIONS = {
   AUTO_HANDLE: 'auto_handle',       // 自动处理
   MANUAL_REVIEW: 'manual_review',    // 人工审核

@@ -1,6 +1,6 @@
 /**
  * 系统性能与成本效益监控模块
- * 实时统计普惠AI系统的经济效益和技术性能
+ * 实时统计mmcow视觉AI系统的经济效益和技术性能
  */
 
 export class PerformanceMonitor {

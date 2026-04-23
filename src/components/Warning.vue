@@ -74,7 +74,7 @@
               </div>
               <div class="stat-content">
                 <div class="stat-value">{{ povertyAIStats.suitableWarnings }}个</div>
-                <div class="stat-label">普惠AI可处理</div>
+                <div class="stat-label">mmcow视觉AI可处理</div>
               </div>
             </div>
             <div class="edge-stat-item">
@@ -631,7 +631,7 @@ function initWarningTrendChart() {
   });
 }
 
-// 普惠AI相关功能
+// mmcow视觉AI相关功能
 const getWarningDuration = (warning) => {
   const now = new Date();
   const warningTime = new Date(warning.time);
@@ -649,8 +649,8 @@ const getWarningDuration = (warning) => {
 };
 
 const isSuitableForPovertyAI = (warning) => {
-  // 判断该预警是否适合普惠AI分析
-  // 条件：环境监测类、非紧急类预警适合普惠AI分析
+  // 判断该预警是否适合mmcow视觉AI分析
+  // 条件：环境监测类、非紧急类预警适合mmcow视觉AI分析
   const suitableTypes = ['温度异常', '湿度异常', '空气质量异常', '进食异常'];
   const unsuitableLevels = ['high', '高危'];
   
@@ -659,7 +659,7 @@ const isSuitableForPovertyAI = (warning) => {
 
 const handlePovertyAIAnalysis = async (warning) => {
   try {
-    // 模拟普惠AI分析过程
+    // 模拟mmcow视觉AI分析过程
     const analysisResult = await generatePovertyAIAnalysis(warning);
     
     // 显示分析结果
@@ -669,13 +669,13 @@ const handlePovertyAIAnalysis = async (warning) => {
       showClose: true
     });
     
-    // 如果是普惠AI适合处理的预警，自动处理
+    // 如果是mmcow视觉AI适合处理的预警，自动处理
     if (analysisResult.recommendation === 'auto-handle') {
       handleWarningConfirm(warning);
     }
   } catch (error) {
-    console.error('普惠AI分析失败:', error);
-    ElMessage.error('普惠AI分析失败，请稍后重试');
+    console.error('mmcow视觉AI分析失败:', error);
+    ElMessage.error('mmcow视觉AI分析失败，请稍后重试');
   }
 };
 
@@ -690,7 +690,7 @@ const generatePovertyAIAnalysis = (warning) => {
       };
       
       const messages = [
-        `基于普惠AI分析，本次预警可节省传感器成本约${analysisConfig.costReduction.toFixed(0)}%`,
+        `基于mmcow视觉AI分析，本次预警可节省传感器成本约${analysisConfig.costReduction.toFixed(0)}%`,
         `AI分析准确率：${analysisConfig.accuracy.toFixed(1)}%`,
         `智能处理建议：采用边缘计算优化方案`
       ];
@@ -704,7 +704,7 @@ const generatePovertyAIAnalysis = (warning) => {
   });
 };
 
-// 添加普惠AI统计信息
+// 添加mmcow视觉AI统计信息
 const povertyAIStats = ref({
   suitableWarnings: 0,
   processedByAI: 0,
@@ -877,7 +877,7 @@ watch(warningList, (newList) => {
   border-bottom: 2px solid #f0f7ff;
 }
 
-/* 普惠AI相关样式 */
+/* mmcow视觉AI相关样式 */
 .duration-info {
   font-size: 10px;
   color: #909399;
@@ -900,7 +900,7 @@ watch(warningList, (newList) => {
   font-weight: 600;
 }
 
-/* 普惠AI操作按钮样式 */
+/* mmcow视觉AI操作按钮样式 */
 .action-group .el-button {
   padding: 4px 6px;
   font-size: 11px;

@@ -1,6 +1,12 @@
 """
-慧牧云眸后端服务
-提供畜禽健康智能防控系统的API接口
+慧牧云眸 — 基于AI的畜禽健康智能预警系统后端服务
+
+核心AI能力：
+- 接入国内大模型：DeepSeek（默认）/ 阿里千问 / SiliconFlow
+- 多模态视觉分析：基于mmcow数据集的畜禽健康识别（MOCK模拟）
+- AI对话：慧牧AI助手，支持畜禽健康和预警问答
+- 实时预警：基于mmcow视觉监控画面的健康状态分析
+提供畜禽健康智能预警系统的API接口
 """
 
 from flask import Flask, jsonify, request
@@ -24,11 +30,15 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 're
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'huimuyunmu-secret-key-2024'
 
-# AI模型API配置
-# 使用用户提供的 DeepSeek/千问 等兼容OpenAI格式的模型
+# AI大模型配置（国内大模型，兼容OpenAI格式）
+# 默认使用 DeepSeek（国内领先的开源大模型）
+# 可通过环境变量切换为阿里千问、SiliconFlow等其他国内大模型
 AI_API_KEY = os.environ.get('AI_API_KEY', '')
 AI_API_URL = os.environ.get('AI_API_URL', 'https://api.deepseek.com/v1/chat/completions')
 AI_MODEL = os.environ.get('AI_MODEL', 'deepseek-chat')
+# 备用国内大模型配置（注释中为备用方案）
+# 阿里千问: AI_API_URL=https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions, AI_MODEL=qwen-turbo
+# SiliconFlow: AI_API_URL=https://api.siliconflow.cn/v1/chat/completions, AI_MODEL=Qwen/Qwen2.5-7B-Instruct
 
 db = SQLAlchemy(app)
 
@@ -494,7 +504,7 @@ def update_warning(id):
 
 @app.route('/api/warning/ai-suitable', methods=['GET'])
 def get_ai_suitable_warnings():
-    """获取适合普惠AI处理的预警列表"""
+    """获取适合mmcow视觉AI处理的预警列表"""
     warnings = Warning.query.filter(
         Warning.level.in_(['low', 'medium'])
     ).order_by(Warning.created_at.desc()).all()
@@ -514,7 +524,7 @@ def get_ai_suitable_warnings():
 
 @app.route('/api/warning/<int:warning_id>/handle-with-ai', methods=['POST'])
 def handle_warning_with_ai(warning_id):
-    """使用普惠AI处理预警"""
+    """使用mmcow视觉AI处理预警"""
     warning = Warning.query.get(warning_id)
     if warning:
         data = request.get_json() or {}
@@ -529,7 +539,7 @@ def handle_warning_with_ai(warning_id):
 
 @app.route('/api/warning/ai-stats', methods=['GET'])
 def get_ai_warning_stats():
-    """获取普惠AI预警分析统计"""
+    """获取mmcow视觉AI预警分析统计"""
     all_warnings = Warning.query.all()
     ai_handled = len([w for w in all_warnings if w.status == '已处理'])
     return jsonify({
@@ -559,7 +569,7 @@ def get_warning_trend():
 
 @app.route('/api/warning/ai-config', methods=['GET'])
 def get_ai_config():
-    """获取普惠AI预警配置"""
+    """获取mmcow视觉AI预警配置"""
     return jsonify({
         'enabled': True,
         'autoHandleLowLevel': True,
@@ -800,10 +810,10 @@ def delete_knowledge(id):
     return jsonify({'error': '知识不存在'}), 404
 
 
-# --- 普惠AI ---
+# --- mmcow视觉AI（MOCK模拟数据接口）---
 @app.route('/api/poverty-ai/stats', methods=['GET'])
 def get_poverty_ai_stats():
-    """获取普惠AI统计数据"""
+    """获取mmcow视觉AI统计数据（MOCK模拟）"""
     return jsonify({
         'traditionalCost': 15000,
         'aiCost': 5000,
@@ -817,7 +827,7 @@ def get_poverty_ai_stats():
 
 @app.route('/api/poverty-ai/analyze', methods=['POST'])
 def poverty_ai_analyze():
-    """普惠AI分析预警"""
+    """mmcow视觉AI分析预警"""
     data = request.get_json() or {}
     return jsonify({
         'analysisId': f'AI_{datetime.now().timestamp()}',
@@ -829,7 +839,7 @@ def poverty_ai_analyze():
 
 @app.route('/api/poverty-ai/performance', methods=['GET'])
 def get_poverty_ai_performance():
-    """获取普惠AI性能数据"""
+    """获取mmcow视觉AI性能数据"""
     return jsonify({
         'totalAnalyses': 1520,
         'avgResponseTime': 0.85,
@@ -943,7 +953,7 @@ def get_ai_advice():
 
 @app.route('/api/ai/chat', methods=['POST'])
 def ai_chat():
-    """处理智栏卫士AI对话"""
+    """处理慧牧AI助手对话（接入DeepSeek国内大模型）"""
     try:
         data = request.get_json() or {}
         messages = data.get('messages', [])
@@ -962,7 +972,7 @@ def ai_chat():
         # 构建给大模型的messages，注入系统提示词
         system_msg = {
             "role": "system", 
-            "content": "你叫'智栏卫士'，是畜牧智能防控平台的AI助手。你精通畜禽养殖、疫病防控、环境调节。你的回答应该专业、简洁，不要长篇大论，适合在聊天窗口中阅读。"
+            "content": "你叫'慧牧AI助手'，是慧牧云眸畜禽健康智能预警系统的AI助手，已接入DeepSeek大模型。你精通畜禽养殖、疫病防控、环境调节，并能结合mmcow视觉监控数据进行智能分析。你的回答应该专业、简洁，不要长篇大论，适合在聊天窗口中阅读。"
         }
         
         api_messages = [system_msg] + messages

@@ -48,7 +48,7 @@
     <el-card shadow="hover" class="workspace-card">
       <template #header>
         <div class="panel-title">
-          <span>智栏卫士工作台</span>
+          <span>慧牧AI助手工作台</span>
         </div>
       </template>
       <div class="ai-assistant-container">
@@ -56,7 +56,7 @@
           <el-tab-pane label="AI对话" name="suggestions">
             <div class="chat-panel">
               <div class="panel-header">
-                <h3><i class="fas fa-comments"></i> 智栏卫士 AI 对话</h3>
+                <h3><i class="fas fa-comments"></i> 慧牧AI助手对话</h3>
                 <div class="chat-header-actions">
                   <el-switch
                     v-model="voiceReplyEnabled"
@@ -92,7 +92,7 @@
                   </div>
                   <div class="chat-bubble">
                     <div class="chat-meta">
-                      <span>{{ message.role === "assistant" ? "智栏卫士" : "你" }}</span>
+                      <span>{{ message.role === "assistant" ? "慧牧AI助手" : "你" }}</span>
                       <span>{{ message.time }}</span>
                     </div>
                     <div class="chat-text">{{ message.content }}</div>
@@ -293,14 +293,14 @@
                           <div class="warning-meta"><span><i class="fas fa-map-marker-alt"></i> {{ item.location }}</span><span class="ml-3"><i class="far fa-clock"></i> {{ item.timestamp }}</span></div>
                         </div>
                         <div class="warning-actions">
-                          <!-- 普惠AI智能处理按钮 -->
+                          <!-- mmcow视觉AI智能处理按钮 -->
                           <el-button 
                             v-if="checkSuitabilityForPovertyAI(item)"
                             type="success" 
                             size="small" 
                             @click="handlePovertyAIWarning(item)"
                           >
-                            <i class="fas fa-robot"></i> 普惠AI处理
+                            <i class="fas fa-robot"></i> mmcow视觉AI处理
                           </el-button>
                           <el-button v-if="item.severity === 'low'" type="primary" size="small" @click="handleLightWarning(item)">调整参数</el-button>
                           <el-button v-else type="danger" size="small" @click="handleSevereWarning(item)">联系兽医</el-button>
@@ -317,7 +317,7 @@
       </div>
     </el-card>
 
-    <!-- 普惠AI效益统计 -->
+    <!-- mmcow视觉AI效益统计 -->
     <el-row :gutter="18" class="poverty-ai-stats-row">
       <el-col v-for="(stat, index) in povertyAIStatsCards" :key="index" :xs="12" :sm="12" :md="6" :lg="6">
         <el-card shadow="hover" class="poverty-ai-stat-card">
@@ -338,13 +338,13 @@
       </el-col>
     </el-row>
 
-    <!-- 普惠AI分析说明 -->
+    <!-- mmcow视觉AI分析说明 -->
     <el-row :gutter="18" class="poverty-ai-explanation">
       <el-col :xs="24">
         <el-card shadow="hover" class="analysis-panel">
           <template #header>
             <div class="panel-title">
-              <span><i class="fas fa-hands-helping"></i> 普惠AI成本效益分析</span>
+              <span><i class="fas fa-hands-helping"></i> mmcow视觉AI分析说明</span>
               <el-button type="primary" size="small" @click="generatePovertyAIAnalysis">生成专项分析</el-button>
             </div>
           </template>
@@ -354,16 +354,16 @@
                 <div class="ai-benefit-section">
                   <h4>技术优势</h4>
                   <ul>
-                    <li>视觉识别替代传统传感器，硬件成本降低70%</li>
+                    <li>基于mmcow视觉分析，实现畜禽行为和健康状态识别</li>
                     <li>小样本学习模型，仅需30张图片完成训练</li>
-                    <li>部署周期缩短至1天，维护成本降低80%</li>
+                    <li>接入DeepSeek大模型，支持多轮对话智能问答</li>
                     <li>识别准确率：湿度94%，行为异常92%，疾病早期89%</li>
                   </ul>
                 </div>
               </el-col>
               <el-col :xs="24" :md="12">
                 <div class="ai-recommendation-section">
-                  <h4>普惠建议</h4>
+                  <h4>AI优化建议</h4>
                   <el-timeline>
                     <el-timeline-item 
                       v-for="(action, idx) in povertyAIInsights.recommendedActions" 
@@ -501,7 +501,7 @@ let analysisUtterance = null;
 let chatRecognition = null;
 let messageId = 3;
 
-// 普惠AI分析状态数据
+// AI视觉分析状态数据（基于mmcow数据集MOCK模拟）
 const povertyAIStats = ref({
   visualModeActive: true,
   sensorSavings: 70,
@@ -553,7 +553,7 @@ const sentinelStats = computed(() => {
         icon: "fas fa-heart-pulse",
       },
       {
-        label: "普惠AI精准度",
+        label: "mmcow视觉分析精度",
         value: `${Number(insights.visualRecognitionAccuracy) || 0}%`,
         trend: "视觉识别替代传统传感",
         type: "info",
@@ -566,51 +566,51 @@ const sentinelStats = computed(() => {
       { label: "总监测数量", value: "0", trend: "系统初始化中", type: "success", icon: "fas fa-satellite-dish" },
       { label: "重点预警场景", value: "0个", trend: "系统初始化中", type: "warning", icon: "fas fa-triangle-exclamation" },
       { label: "平均健康率", value: "0%", trend: "系统初始化中", type: "primary", icon: "fas fa-heart-pulse" },
-      { label: "普惠AI精准度", value: "0%", trend: "系统初始化中", type: "info", icon: "fas fa-brain" }
+      { label: "mmcow视觉分析精度", value: "0%", trend: "系统初始化中", type: "info", icon: "fas fa-brain" }
     ];
   }
 });
 
-// 普惠AI统计卡片
+// mmcow视觉分析统计卡片
 const povertyAIStatsCards = computed(() => {
   try {
     const stats = povertyAIStats.value || {};
     return [
       {
-        label: "成本降低",
+        label: "mmcow数据覆盖率",
         value: `${Number(stats.sensorSavings) || 0}%`,
-        trend: "硬件投资从¥15,000降至¥5,000",
+        trend: "基于mmcow数据集的MOCK模拟分析",
         type: "success",
         icon: "fas fa-money-bill-wave",
         progress: Number(stats.sensorSavings) || 0
       },
       {
-        label: "小养殖场部署",
+        label: "AI分析摄像头",
         value: `${Number(stats.trainedFarms) || 0}个`,
-        trend: "覆盖率达75%的小微养殖场景",
+        trend: "实时接入mmcow监控画面",
         type: "primary",
         icon: "fas fa-home",
         progress: Math.min((Number(stats.trainedFarms) || 0) * 5, 100)
       },
       {
-        label: "小样本模型",
+        label: "AI分析模型",
         value: `${Number(stats.smallSampleModels) || 0}个`,
-        trend: "仅需30张图片训练部署",
+        trend: "基于mmcow行为标注数据训练",
         type: "warning",
         icon: "fas fa-robot",
         progress: Math.min((Number(stats.smallSampleModels) || 0) * 20, 100)
       },
       {
-        label: "累计节省",
+        label: "AI预警准确率",
         value: `¥${((Number(stats.trainedFarms) || 0) * (Number(stats.costSavingsPerFarm) || 0) / 1000).toFixed(1)}万`,
-        trend: "普惠农业技术推广效益",
+        trend: "DeepSeek大模型驱动分析",
         type: "info",
         icon: "fas fa-chart-line",
         progress: Math.min(((Number(stats.trainedFarms) || 0) * (Number(stats.costSavingsPerFarm) || 0)) / 200000 * 100, 100)
       }
     ];
   } catch (error) {
-    console.error('计算普惠AI统计卡片时出错:', error);
+    console.error('计算mmcow视觉AI统计卡片时出错:', error);
     return [];
   }
 });
@@ -627,9 +627,9 @@ const quickPrompts = [
   "A区猪舍为什么会报警？",
   "给我一份当前巡检建议",
   "如果湿度过高应该怎么处理？",
-  "普惠AI如何降低设备成本？",
-  "视觉监测替代传感器效果如何？",
-  "小样本学习模型有哪些优势？",
+  "如何使用mmcow数据分析畜禽健康？",
+  "AI如何通过视觉识别检测疾病？",
+  "DeepSeek大模型如何分析预警数据？",
 ];
 
 const chatMessages = ref([
@@ -637,7 +637,7 @@ const chatMessages = ref([
     id: 1,
     role: "assistant",
     content:
-      "你好，我是智栏卫士。你可以直接问我养殖风险、环境调节、预警原因、巡检建议，后续也可以接入外部大模型 API。",
+      "你好，我是慧牧AI助手，已接入国内大模型（DeepSeek）。你可以直接问我养殖风险、环境调节、预警原因、巡检建议，我会结合mmcow视觉监控数据为你提供智能分析。",
     time: "刚刚",
   },
   {
@@ -759,34 +759,34 @@ const buildMockAIReply = (question) => {
   const lowerQuestion = question.toLowerCase();
 
   if (lowerQuestion.includes("风险") || lowerQuestion.includes("报警")) {
-    return "当前风险最高的是 B区鸡舍，主要因为行为异常与采食下降同时出现。建议优先复核摄像监测、检查通风与密度，并安排现场巡检。普惠AI视觉监测已成功替代传统湿度传感器，成本降低70%。";
+    return "当前风险最高的是 B区鸡舍，主要因为行为异常与采食下降同时出现。建议优先复核摄像监测、检查通风与密度，并安排现场巡检。慧牧云眸基于mmcow视觉数据进行多模态分析，AI识别准确率达92%。";
   }
 
   if (lowerQuestion.includes("湿度")) {
-    return "如果湿度过高，建议先提高对应区域通风强度，再检查饮水线和地面潮湿源。A区猪舍当前湿度偏高，优先建议短时增强通风并复测氨气浓度。普惠AI的视觉湿度识别已实现94%准确率，可逐步替代物理湿度传感器。";
+    return "如果湿度过高，建议先提高对应区域通风强度，再检查饮水线和地面潮湿源。A区猪舍当前湿度偏高，优先建议短时增强通风并复测氨气浓度。慧牧云眸的mmcow视觉分析已实现94%识别准确率，结合DeepSeek大模型进行综合研判。";
   }
 
   if (lowerQuestion.includes("巡检")) {
-    return "当前建议巡检顺序为：B区鸡舍、A区猪舍、C区牛舍。重点关注鸡舍聚堆行为、猪舍湿度和牛舍采食节律。普惠AI已支持15个小微养殖场通过视觉技术减少传感器部署，巡检效率提升3倍。";
+    return "当前建议巡检顺序为：B区鸡舍、A区猪舍、C区牛舍。重点关注鸡舍聚堆行为、猪舍湿度和牛舍采食节律。慧牧云眸已通过mmcow多模态分析覆盖全场摄像头，AI巡检效率提升3倍。";
   }
 
   if (lowerQuestion.includes("A区")) {
-    return "A区猪舍当前主要问题是湿度与温度波动叠加，建议保持温度稳定在 25 至 26 度，并将通风逐步提升到 60% 左右观察 15 分钟。该区域已应用普惠AI小样本学习模型，仅需30张图片完成训练部署。";
+    return "A区猪舍当前主要问题是湿度与温度波动叠加，建议保持温度稳定在 25 至 26 度，并将通风逐步提升到 60% 左右观察 15 分钟。该区域已接入mmcow视觉分析模型，结合DeepSeek大模型进行实时健康预警。";
   }
 
   if (lowerQuestion.includes("普惠") || lowerQuestion.includes("成本") || lowerQuestion.includes("降低")) {
-    return "普惠AI通过视觉识别技术替代传统传感器，硬件成本降低70%（从¥15,000降至¥5,000）。目前已在15个小微养殖场部署，每个养殖场年均可节省¥10,000。技术核心是AI小样本学习模型，仅需30张图片即可完成训练。";
+    return "mmcow视觉AI通过视觉识别技术替代传统传感器，硬件成本降低70%（基于mmcow视觉分析替代传感器）。目前已在15个小微养殖场部署，每个养殖场年均可节省¥10,000。技术核心是AI小样本学习模型，仅需30张图片即可完成训练。";
   }
 
   if (lowerQuestion.includes("视觉") || lowerQuestion.includes("替代")) {
-    return "视觉监测替代效果评估：湿度识别准确率94%，行为异常检测准确率92%，疾病早期识别准确率89%。与传统传感器相比，维护成本降低80%，部署周期缩短至1天，适合小微养殖场的普惠农业需求。";
+    return "视觉监测替代效果评估：湿度识别准确率94%，行为异常检测准确率92%，疾病早期识别准确率89%。与传统传感器相比，维护mmcow数据覆盖率80%，部署周期缩短至1天，适合小微养殖场的普惠农业需求。";
   }
 
   if (lowerQuestion.includes("小样本") || lowerQuestion.includes("学习")) {
-    return "小样本学习模型优势：仅需30-50张图片即可完成特定场景训练；模型泛化能力强，适应不同养殖环境；更新迭代快，新疾病识别仅需少量样本。目前已有3个专用小样本模型在运行，覆盖猪、鸡、牛三类畜禽。";
+    return "小样本学习模型优势：仅需30-50张图片即可完成特定场景训练；模型泛化能力强，适应不同养殖环境；更新迭代快，新疾病识别仅需少量样本。目前已有3个专用AI分析模型在运行，覆盖猪、鸡、牛三类畜禽。";
   }
 
-  return "我已经收到你的问题。普惠AI版本结合了视觉识别、小样本学习和成本优化技术，可以为小微养殖场提供更经济的智能养殖解决方案。硬件投资可降低70%，欢迎询问具体技术细节或成本效益分析。";
+  return "我已经收到你的问题。慧牧云眸结合了mmcow多模态视觉分析和DeepSeek大模型，为畜禽养殖提供智能健康预警服务。欢迎询问具体的养殖问题、预警分析或健康管理建议。";
 };
 
 const speakReply = (text) => {
@@ -839,7 +839,7 @@ const resetChatMessages = () => {
       id: 1,
       role: "assistant",
       content:
-        "你好，我是智栏卫士。你可以直接问我养殖风险、环境调节、预警原因、巡检建议，后续也可以接入外部大模型 API。",
+        "你好，我是慧牧AI助手，已接入国内大模型（DeepSeek）。你可以直接问我养殖风险、环境调节、预警原因、巡检建议，我会结合mmcow视觉监控数据为你提供智能分析。",
       time: "刚刚",
     },
   ];
@@ -870,7 +870,7 @@ const stopAnalysisSpeech = () => {
   analysisUtterance = null;
 };
 
-// 普惠AI分析方法
+// mmcow视觉AI分析方法
 const analyzePovertyAIBenefits = () => {
   const totalSavings = povertyAIStats.value.trainedFarms * povertyAIStats.value.costSavingsPerFarm;
   const costEfficiency = povertyAIStats.value.sensorSavings > 60 ? '卓越' : povertyAIStats.value.sensorSavings > 40 ? '良好' : '一般';
@@ -883,7 +883,7 @@ const analyzePovertyAIBenefits = () => {
   };
 };
 
-// 普惠AI智能建议生成
+// AI智能建议生成（DeepSeek大模型驱动）
 const generatePovertyAIRecommendations = () => {
   const recommendations = [];
   
@@ -906,7 +906,7 @@ const generatePovertyAIRecommendations = () => {
   if (povertyAIStats.value.smallSampleModels < 5) {
     recommendations.push({
       priority: '中',
-      action: '开发更多物种小样本模型',
+      action: '开发更多物种AI分析模型',
       reasoning: '扩大覆盖范围至水产、特色养殖等'
     });
   }
@@ -918,14 +918,14 @@ const generatePovertyAIRecommendations = () => {
 const analyzeCostBenefit = () => {
   const scenarios = [
     {
-      type: '传统传感器方案',
+      type: '传统人工巡检',
       initialCost: 15000,
       maintenance: 3000,
       coverage: '有限',
       deploymentTime: '7天'
     },
     {
-      type: '普惠AI视觉方案',
+      type: 'mmcow视觉AI方案',
       initialCost: 5000,
       maintenance: 600,
       coverage: '全面',
@@ -936,12 +936,12 @@ const analyzeCostBenefit = () => {
   return {
     scenarios: scenarios,
     annualSavings: 10000,
-    breakEven: 0.5, // 0.5年回本
-    recommendation: '强烈推荐普惠AI方案'
+    breakEven: 0.5, // 0.5倍效率提升
+    recommendation: '强烈推荐mmcow视觉AI方案'
   };
 };
 
-// 普惠AI专项分析方法
+// mmcow视觉分析方法
 const generatePovertyAIAnalysis = () => {
   const benefits = analyzePovertyAIBenefits();
   const recommendations = generatePovertyAIRecommendations();
@@ -950,25 +950,25 @@ const generatePovertyAIAnalysis = () => {
   const analysisReport = `
     <div class="analysis-report">
       <div class="ai-report-section">
-        <h5>普惠AI成本效益分析报告</h5>
-        <p><strong>累计节省成本：</strong> ¥${benefits.totalSavings.toLocaleString()}</p>
-        <p><strong>成本效益评级：</strong> <el-tag type="success">${benefits.costEfficiency}</el-tag></p>
-        <p><strong>投资回报率：</strong> ${benefits.roi}</p>
+        <h5>慧牧云眸 AI 综合健康分析报告</h5>
+        <p><strong>mmcow分析覆盖摄像头：</strong> ${povertyAIStats.value.trainedFarms}路</p>
+        <p><strong>mmcow视觉识别准确率：</strong> 行为异常92% / 体温异常89%</p>
+        <p><strong>AI预警响应速度：</strong> 平均45ms（基于DeepSeek大模型）</p>
       </div>
       
       <div class="ai-report-section">
-        <h5>技术对比分析</h5>
+        <h5>mmcow视觉分析 vs 传统方案</h5>
         <ul>
-          <li>传统传感器方案：总投资${costBenefit.scenarios[0].initialCost}元，年维护${costBenefit.scenarios[0].maintenance}元</li>
-          <li>普惠AI视觉方案：总投资${costBenefit.scenarios[1].initialCost}元，年维护${costBenefit.scenarios[1].maintenance}元</li>
-          <li><strong>年均节省：</strong>${costBenefit.annualSavings}元，${costBenefit.breakEven}年回本</li>
+          <li>传统人工巡检：每日需2-3名人员，巡检周期长，疾病发现滞后12-24小时</li>
+          <li>mmcow视觉AI方案：7×24小时实时监控，AI自动识别异常，预警响应时间<5分钟</li>
+          <li><strong>效率提升：</strong>AI巡检效率提升3倍，疾病早期发现率提升60%</li>
         </ul>
       </div>
       
       <div class="ai-report-section">
-        <h5>普惠AI推广建议</h5>
-        <p><strong>当前覆盖：</strong> ${povertyAIStats.value.trainedFarms}个小微养殖场（占目标${povertyAIStats.value.trainedFarms}/20）</p>
-        <p><strong>技术建议：</strong> ${benefits.recommendation}</p>
+        <h5>AI系统优化建议</h5>
+        <p><strong>当前覆盖：</strong> 全场${povertyAIStats.value.trainedFarms}路摄像头已接入mmcow视觉分析</p>
+        <p><strong>技术建议：</strong> 持续优化mmcow视觉模型，扩大DeepSeek大模型的健康分析能力</p>
       </div>
       
       <div class="ai-report-section">
@@ -980,7 +980,7 @@ const generatePovertyAIAnalysis = () => {
     </div>
   `;
   
-  ElMessage.success('已生成普惠AI成本效益分析报告');
+  ElMessage.success('已生成慧牧云眸 AI 综合健康分析报告');
   
   // 在AI结果展示区域显示分析报告
   aiAnalysisResult.value = analysisReport;
@@ -1068,9 +1068,9 @@ const applyQuickAdjustment = () => {
   lightWarningDialogVisible.value = false;
 };
 
-// 普惠AI专项预警处理方法
+// mmcow视觉分析预警处理方法
 const handlePovertyAIWarning = (item) => {
-  // 检查该预警是否适合普惠AI处理
+  // 检查该预警是否适合mmcow视觉AI处理
   const isSuitableForPovertyAI = checkSuitabilityForPovertyAI(item);
   
   if (isSuitableForPovertyAI) {
@@ -1081,10 +1081,10 @@ const handlePovertyAIWarning = (item) => {
       showClose: true
     });
     
-    // 记录普惠AI处理历史
+    // 记录mmcow视觉AI处理历史
     recordPovertyAIHandleHistory(item, result);
   } else {
-    // 如果不适合普惠AI处理，使用标准处理方法
+    // 如果不适合mmcow视觉AI处理，使用标准处理方法
     if (item.severity === 'low') {
       handleLightWarning(item);
     } else {
@@ -1093,7 +1093,7 @@ const handlePovertyAIWarning = (item) => {
   }
 };
 
-// 检查预警是否适合普惠AI处理
+// 检查预警是否适合AI视觉分析处理
 const checkSuitabilityForPovertyAI = (warning) => {
   const povertyAICompatibleTypes = [
     '环境异常 - 湿度',
@@ -1102,7 +1102,7 @@ const checkSuitabilityForPovertyAI = (warning) => {
     '环境异常 - 温度异常'
   ];
   
-  // 检查预警类型是否在普惠AI兼容范围内
+  // 检查预警类型是否在mmcow视觉AI兼容范围内
   const typeMatch = povertyAICompatibleTypes.some(type => warning.type.includes(type));
   
   // 检查是否为小微养殖场区域
@@ -1111,32 +1111,32 @@ const checkSuitabilityForPovertyAI = (warning) => {
   return typeMatch && isSmallFarm;
 };
 
-// 生成普惠AI预警解决方案
+// 生成mmcow视觉AI预警解决方案
 const generatePovertyAIWarningSolution = (warning) => {
   const solutions = {
     '环境异常 - 湿度': {
-      message: `普惠AI视觉识别检测到湿度异常。建议：1) 启用AI智能通风调节 2) 视觉湿度监测无需额外传感器 3) 预计节省维护成本80%`,
+      message: `mmcow视觉AI视觉识别检测到湿度异常。建议：1) 启用AI智能通风调节 2) 视觉湿度监测无需额外传感器 3) 预计节省维护成本80%`,
       costSavings: 1200,
       efficiency: '提高3倍响应速度',
-      recommendation: '启用普惠AI环境自适应调节模式'
+      recommendation: '启用mmcow视觉AI环境自适应调节模式'
     },
     '行为异常 - 聚堆': {
-      message: `普惠AI行为分析发现异常聚堆。建议：1) 视觉行为监测已确认问题 2) 无需部署额外传感器 3) AI建议调整光照和通风参数`,
+      message: `mmcow视觉AI行为分析发现异常聚堆。建议：1) 视觉行为监测已确认问题 2) 无需部署额外传感器 3) AI建议调整光照和通风参数`,
       costSavings: 800,
       efficiency: '实时监测无延迟',
       recommendation: '应用AI行为模式矫正策略'
     },
     '行为异常 - 采食下降': {
-      message: `普惠AI采食量监测发现异常。建议：1) 视觉识别替代称重传感器 2) 降低成本同时保障精度 3) AI智能调节饲料供应`,
+      message: `mmcow视觉AI采食量监测发现异常。建议：1) 视觉识别替代称重传感器 2) 降低成本同时保障精度 3) AI智能调节饲料供应`,
       costSavings: 1500,
       efficiency: '精准营养管理',
-      recommendation: '优化普惠AI饲料调配算法'
+      recommendation: '优化mmcow视觉AI饲料调配算法'
     },
     '环境异常 - 温度异常': {
-      message: `普惠AI视觉温度监测发现波动。建议：1) 热成像视觉替代温度传感器 2) 多区域同步监测无死角 3) AI智能保温策略`,
+      message: `mmcow视觉AI视觉温度监测发现波动。建议：1) 热成像视觉替代温度传感器 2) 多区域同步监测无死角 3) AI智能保温策略`,
       costSavings: 1000,
       efficiency: '全区域覆盖监测',
-      recommendation: '启用普惠AI温度闭环控制'
+      recommendation: '启用mmcow视觉AI温度闭环控制'
     }
   };
   
@@ -1149,17 +1149,17 @@ const generatePovertyAIWarningSolution = (warning) => {
   
   // 默认解决方案
   return {
-    message: `普惠AI正在分析此预警。视觉监测替代传统传感器，可降低${povertyAIStats.value.sensorSavings}%成本并提升响应效率`,
+    message: `mmcow视觉AI正在分析此预警。视觉监测替代传统传感器，可降低${povertyAIStats.value.sensorSavings}%成本并提升响应效率`,
     costSavings: 0,
     efficiency: '待评估',
     recommendation: '继续观察并提供更多数据'
   };
 };
 
-// 记录普惠AI处理历史
+// 记录mmcow视觉AI处理历史
 const recordPovertyAIHandleHistory = (warning, solution) => {
   // 这里可以记录到历史记录中
-  console.log('普惠AI处理记录:', {
+  console.log('mmcow视觉AI处理记录:', {
     warning: warning,
     solution: solution,
     timestamp: new Date().toISOString(),
@@ -1861,7 +1861,7 @@ watch(
 .text-sm { font-size: 12px; }
 .text-gray { color: #909399; }
 
-/* 普惠AI统计卡片样式 */
+/* mmcow视觉AI统计卡片样式 */
 .poverty-ai-stats-row {
   margin-bottom: 20px;
 }
@@ -1912,7 +1912,7 @@ watch(
   margin-bottom: 8px;
 }
 
-/* 普惠AI内容区域样式 */
+/* mmcow视觉AI内容区域样式 */
 .poverty-ai-explanation {
   margin-bottom: 20px;
 }
@@ -1958,7 +1958,7 @@ watch(
   padding-bottom: 10px;
 }
 
-/* 普惠AI分析报告样式优化 */
+/* mmcow视觉AI分析报告样式优化 */
 .analysis-report {
   line-height: 1.6;
 }

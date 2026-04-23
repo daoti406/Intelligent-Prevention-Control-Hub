@@ -1,13 +1,13 @@
 <template>
   <div class="affordable-ai-panel">
-    <!-- 普惠AI功能引导区 -->
+    <!-- mmcow视觉AI功能引导区 -->
     <div class="welcome-section">
       <div class="welcome-card">
         <div class="welcome-icon">
           <i class="el-icon-star"></i>
         </div>
         <div class="welcome-content">
-          <h3>普惠AI智能监测系统</h3>
+          <h3>mmcow视觉AI智能监测系统</h3>
           <p>专为中小养殖场设计，用AI技术替代昂贵传感器</p>
           <div class="benefit-tags">
             <span class="tag cost-saving">成本降低70%</span>

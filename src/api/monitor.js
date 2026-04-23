@@ -47,7 +47,7 @@ export function controlMonitor(cameraId, action) {
   });
 }
 
-// 普惠AI视觉分析状态
+// mmcow视觉分析状态（MOCK模拟）
 export function getAIVisualAnalysis(cameraId) {
   return request({
     url: `/api/monitor/ai-analysis/${cameraId}`,

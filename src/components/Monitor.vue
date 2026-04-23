@@ -40,7 +40,7 @@
           <template #header>
             <div class="flex justify-between items-center">
               <h3 style="margin: 0; color: #2e7d32">
-                <i class="fas fa-brain"></i> 智栏卫士 - AI养殖建议
+                <i class="fas fa-brain"></i> 慧牧AI助手 - 智能养殖建议
               </h3>
             </div>
           </template>
@@ -76,7 +76,7 @@
               </el-form-item>
             </el-form>
             <div v-if="aiAdvice" class="ai-advice-result">
-              <h4>智栏卫士建议：</h4>
+              <h4>慧牧AI助手建议：</h4>
               <p>{{ aiAdvice }}</p>
             </div>
           </div>
@@ -151,14 +151,14 @@
                 <div class="stat-label">成本节约</div>
               </div>
             </div>
-            <!-- 普惠AI创新统计 -->
+            <!-- mmcow AI创新统计 -->
             <div class="ai-stat-item">
               <div class="stat-icon">
                 <i class="fas fa-heart" style="color: #e91e63;"></i>
               </div>
               <div class="stat-content">
                 <div class="stat-value">{{ aiStats.affordableAI?.trained || 15 }}个</div>
-                <div class="stat-label">小微养殖场</div>
+                <div class="stat-label">mmcow监控摄像头</div>
               </div>
             </div>
             <div class="ai-stat-item">
@@ -167,30 +167,30 @@
               </div>
               <div class="stat-content">
                 <div class="stat-value">{{ aiStats.affordableAI?.models || 3 }}个</div>
-                <div class="stat-label">小样本模型</div>
+                <div class="stat-label">AI分析模型</div>
               </div>
             </div>
           </div>
           
-          <!-- 普惠AI特性说明 -->
+          <!-- mmcow AI特性说明 -->
           <div class="affordable-ai-features" v-if="aiStatus.status === 'active'">
-            <el-divider content-position="left">普惠AI创新功能</el-divider>
+            <el-divider content-position="left">慧牧云眸 AI 核心能力</el-divider>
             <div class="feature-list">
               <div class="feature-item">
                 <i class="fas fa-camera" style="color: #1890ff;"></i>
-                <span>AI视觉替代传感器：降低硬件成本70%</span>
+                <span>mmcow多模态视觉分析：实时识别畜禽健康状态</span>
               </div>
               <div class="feature-item">
                 <i class="fas fa-graduation-cap" style="color: #52c41a;"></i>
-                <span>小样本学习：仅需3-5个样本即可训练</span>
+                <span>国内大模型（DeepSeek）驱动：智能问答与预警分析</span>
               </div>
               <div class="feature-item">
                 <i class="fas fa-rocket" style="color: #faad14;"></i>
-                <span>5分钟快速部署，零技术门槛</span>
+                <span>基于mmcow数据集的行为异常识别（MOCK模拟）</span>
               </div>
               <div class="feature-item">
                 <i class="fas fa-shield-alt" style="color: #fa541c;"></i>
-                <span>边缘计算：无需云服务，保护数据隐私</span>
+                <span>多模态数据融合：视觉+传感器联合健康研判</span>
               </div>
             </div>
           </div>
@@ -301,11 +301,11 @@
                         <i class="fas fa-running"></i>
                         {{ Math.round(camera.aiAnalysis.activity.level) }}%
                       </div>
-                      <!-- 普惠AI特色标识 -->
+                      <!-- mmcow AI特色标识 -->
                       <div v-if="camera.aiAnalysis.affordableAI?.visualOnlyMode" 
                            class="analysis-badge affordable-ai-badge">
                         <i class="fas fa-seedling"></i>
-                        普惠AI
+                        mmcow AI
                       </div>
                     </div>
                     <p class="video-caption">
@@ -364,14 +364,14 @@
                     </div>
                   </div>
                   
-                  <!-- 普惠AI分析详情 -->
+                  <!-- mmcow AI分析详情 -->
                   <div v-if="camera.aiAnalysis.affordableAI" class="affordable-ai-details">
-                    <el-divider content-position="left">普惠AI效益分析</el-divider>
+                    <el-divider content-position="left">mmcow AI效益分析</el-divider>
                     <div class="ai-benefit-grid">
                       <div class="benefit-item">
-                        <span class="benefit-label">视觉分析模式:</span>
+                        <span class="benefit-label">mmcow分析模式:</span>
                         <el-tag :type="camera.aiAnalysis.affordableAI.visualOnlyMode ? 'success' : 'info'">
-                          {{ camera.aiAnalysis.affordableAI.visualOnlyMode ? '全视觉' : '传感器融合' }}
+                          {{ camera.aiAnalysis.affordableAI.visualOnlyMode ? 'mmcow视觉' : '多模态融合' }}
                         </el-tag>
                       </div>
                       <div class="benefit-item">
@@ -517,8 +517,8 @@ const aiStats = reactive({
   density: { scanned: 0 },
   costSavings: '70%',  // 更新为70%成本节约
   affordableAI: {
-    trained: 15,        // 已训练的小微养殖场数量
-    models: 3,          // 小样本模型数量
+    trained: 15,        // 已训练的mmcow监控摄像头数量
+    models: 3,          // AI分析模型数量
     accuracy: '95.8%',  // 视觉分析准确率
     costReduction: '70%' // 成本降低比例
   }
@@ -594,18 +594,18 @@ const performAIanalysis = async () => {
   for (const camera of cameras.value) {
     if (camera.status === 'online') {
       try {
-        // 普惠AI：优先使用视觉分析替代传感器
-        const useVisualAnalysis = true; // 普惠AI特性：默认启用视觉分析
+        // mmcow AI：优先使用视觉分析替代传感器
+        const useVisualAnalysis = true; // mmcow AI特性：默认启用视觉分析
         
-        // 视觉特征提取（普惠AI核心技术）
+        // 视觉特征提取（mmcow AI核心技术）
         const visualFeatures = await multiModalProcessor.extractVisualFeatures(null, {
           cameraId: camera.id,
           resolution: '1080p',
-          affordableMode: useVisualAnalysis, // 启用普惠AI模式
+          affordableMode: useVisualAnalysis, // 启用mmcow AI模式
           smallSampleLearning: true          // 小样本学习模式
         });
         
-        // 在普惠AI模式下，优先使用视觉分析，传感器数据仅作为补充
+        // 在mmcow AI模式下，优先使用视觉分析，传感器数据仅作为补充
         let sensorData = {};
         if (!useVisualAnalysis || camera.temperature || camera.humidity) {
           sensorData = {
@@ -616,7 +616,7 @@ const performAIanalysis = async () => {
         
         const fusedData = multiModalProcessor.optimizeSensorReadings(visualFeatures, sensorData);
         
-        // 普惠AI特色分析：评估成本效益和模型性能
+        // mmcow AI特色分析：评估成本效益和模型性能
         const affordableAIAnalysis = {
           visualOnlyMode: useVisualAnalysis,
           sensorCountReduced: useVisualAnalysis ? 3 : 0, // 减少的传感器数量
@@ -625,7 +625,7 @@ const performAIanalysis = async () => {
           smallSampleActive: true
         };
         
-        // 更新摄像头分析数据，添加普惠AI特性
+        // 更新摄像头分析数据，添加mmcow AI特性
         camera.aiAnalysis = {
           ...visualFeatures,
           healthScore: fusedData.healthScore,
@@ -636,9 +636,9 @@ const performAIanalysis = async () => {
         // 更新统计信息
         updateAIStats(camera.aiAnalysis);
         
-        // 动态更新普惠AI统计数据
+        // 动态更新mmcow AI统计数据
         if (useVisualAnalysis) {
-          aiStats.affordableAI.trained = Math.min(aiStats.affordableAI.trained + 1, 50);
+          aiStats.affordableAI.trained = Math.min(aiStats.affordableAI.trained + 1, 20);
         }
         
       } catch (error) {
@@ -982,7 +982,7 @@ function initActivityChart() {
   transform: scale(1.05);
 }
 
-/* 普惠AI特性样式 */
+/* mmcow AI特性样式 */
 .affordable-ai-features {
   margin-top: 16px;
 }
@@ -1005,7 +1005,7 @@ function initActivityChart() {
   font-size: 16px;
 }
 
-/* 普惠AI效益分析样式 */
+/* mmcow AI效益分析样式 */
 .affordable-ai-details {
   margin-top: 16px;
 }

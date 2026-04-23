@@ -106,6 +106,8 @@ const notifications = ref([
   },
 ]);
 
+// 摄像头数据（监控画面GIF来源于mmcow数据集，MOCK模拟真实养殖场景）
+// mmcow (Multi-Modal Cow Dataset) 提供了多模态畜禽行为和健康状态标注数据
 const cameras = ref([
   {
     id: 1,
@@ -573,13 +575,14 @@ const fetchAIAnalysis = async () => {
     const warnings = warningList.value.filter(w => w.status !== '已处理').slice(0, 3);
     const warningDesc = warnings.map(w => `${w.location}:${w.type}`).join('、') || '暂无待处理预警';
     
-    const prompt = `请根据以下畜禽养殖场实时监测数据，生成一份简洁的AI分析报告（200字以内）：
-- 在线监测设备：${stats[0]?.value || 24}台
-- 当前异常数量：${stats[1]?.value || 0}个
+    const prompt = `你是慧牧云眸AI助手，已接入DeepSeek大模型，结合mmcow多模态视觉监控数据进行畜禽健康分析。
+请根据以下实时监测数据（来源：mmcow视觉分析MOCK模拟），生成一份简洁的AI分析报告（200字以内）：
+- 在线监测设备（mmcow摄像头）：${stats[0]?.value || 24}路
+- 当前AI视觉异常检测：${stats[1]?.value || 0}个
 - 当前预警数量：${stats[2]?.value || 0}个
-- 平均健康率：${stats[3]?.value || '97.8%'}
+- mmcow视觉分析平均健康率：${stats[3]?.value || '97.8%'}
 - 待处理预警：${warningDesc}
-请给出：1）当前整体状态评估；2）需要重点关注的问题；3）具体处置建议。`;
+请给出：1）当前整体健康状态评估；2）需要重点关注的AI预警问题；3）具体处置建议。`;
     
     const result = await sendAIChat([{ role: 'user', content: prompt }]);
     const text = result.reply || '暂时无法获取AI分析，请检查后端服务和API配置。';
@@ -594,7 +597,7 @@ const fetchAIAnalysis = async () => {
     aiAnalysisResult.value = `
       <div class="ai-report">
         <div class="ai-report-header">
-          <h4 style="color: #2e7d32; margin-top: 0;"><i class="fas fa-microchip"></i> 智栏 AI 综合分析报告</h4>
+          <h4 style="color: #2e7d32; margin-top: 0;"><i class="fas fa-microchip"></i> 慧牧云眸 AI 综合分析报告</h4>
           <p style="font-size: 12px; color: #999;">分析时间：${new Date().toLocaleString()}</p>
         </div>
         <div class="ai-report-section" style="line-height:1.8;">${htmlContent}</div>

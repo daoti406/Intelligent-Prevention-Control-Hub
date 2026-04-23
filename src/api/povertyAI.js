@@ -1,13 +1,13 @@
 /**
- * 普惠AI专用API接口
- * 提供普惠AI分析、成本优化统计、预警智能处理等功能
+ * mmcow视觉AI专用API接口（兼容保留，对外展示为慧牧云眸AI分析）
+ * 提供mmcow视觉分析、健康预警统计、AI智能处理等功能
  */
 
 import request from "../utils/request";
 import { POVERTY_AI_CONFIG, POVERTY_AI_ANALYSIS_TYPES, POVERTY_AI_ACTIONS } from "../config/povertyAI";
 import { getWarnings } from "./warning";
 
-// 普惠AI统计数据
+// mmcow视觉AI统计数据（MOCK模拟）
 export async function getPovertyAIStats() {
   return request({
     url: "/api/poverty-ai/stats",
@@ -15,7 +15,7 @@ export async function getPovertyAIStats() {
   });
 }
 
-// 普惠AI分析预警
+// mmcow视觉AI分析预警
 export async function analyzeWarningWithPovertyAI(warningData) {
   return request({
     url: "/api/poverty-ai/analyze",
@@ -24,7 +24,7 @@ export async function analyzeWarningWithPovertyAI(warningData) {
   });
 }
 
-// 获取普惠AI适处理预警列表
+// 获取适合mmcow视觉AI处理的预警列表
 export async function getSuitableWarningsForAI(params = {}) {
   const response = await getWarnings(params);
   const allWarnings = response.data || [];
@@ -41,7 +41,7 @@ export async function getSuitableWarningsForAI(params = {}) {
   };
 }
 
-// 普惠AI智能成本效益报告
+// mmcow视觉AI健康分析报告
 export async function generateCostBenefitReport(farmSize = 'mediumFarm') {
   const config = POVERTY_AI_CONFIG.costOptimization.deploymentScenarios[farmSize] ||
                 POVERTY_AI_CONFIG.costOptimization.deploymentScenarios.mediumFarm;
@@ -68,7 +68,7 @@ export async function generateCostBenefitReport(farmSize = 'mediumFarm') {
   };
 }
 
-// 普惠AI性能监控数据
+// mmcow视觉AI性能监控数据
 export async function getAIPerformanceMetrics(timeRange = '7d') {
   return request({
     url: "/api/poverty-ai/performance",
