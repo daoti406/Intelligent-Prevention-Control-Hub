@@ -142,7 +142,23 @@ const submitLogin = async () => {
 
     await handleLoginSuccess(user, token);
   } catch (error) {
-    loginError.value = error.message || "登录失败";
+    // 增强错误处理，避免显示 [object Object]
+    const errorMsg = error instanceof Error 
+      ? error.message 
+      : typeof error === 'string' 
+        ? error 
+        : JSON.stringify(error, null, 2);
+    
+    // 检测网络错误
+    if (errorMsg.includes('Network Error') || errorMsg.includes('ERR_CONNECTION')) {
+      loginError.value = "无法连接到后端服务，请检查网络或联系管理员";
+    } else if (errorMsg.includes('404')) {
+      loginError.value = "登录接口未找到，请检查后端服务是否正确部署";
+    } else if (errorMsg.includes('CORS')) {
+      loginError.value = "跨域请求被阻止，请配置正确的 CORS 策略";
+    } else {
+      loginError.value = errorMsg || "登录失败";
+    }
   } finally {
     loginLoading.value = false;
   }
