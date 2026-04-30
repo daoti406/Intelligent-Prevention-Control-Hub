@@ -1,9 +1,9 @@
 import os
 import json
 import datetime
+import requests
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from openai import OpenAI
 
 app = Flask(__name__)
 CORS(app)
@@ -416,31 +416,38 @@ def ai_advice():
         advice = f"针对{animal_type}的{query}问题，建议：\n\n1. 请及时观察动物的精神状态和食欲情况\n2. 检查饲养环境是否符合要求\n3. 如有异常，请及时联系兽医进行诊断\n4. 定期做好防疫和消毒工作"
         return jsonify({'advice': advice})
     
-    # 调用真正的DeepSeek API
+    # 使用requests直接调用DeepSeek API
     try:
-        client = OpenAI(
-            api_key=AI_API_KEY,
-            base_url=AI_API_URL
-        )
+        url = f"{AI_API_URL}/chat/completions"
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {AI_API_KEY}'
+        }
         
         system_prompt = f"你是一个专业的畜牧兽医专家，现在针对{animal_type}的养殖问题提供专业、准确、可操作的建议。如果用户提供了上下文信息，请结合上下文回答。输出时不要使用Markdown格式，只返回纯文本内容。"
         user_prompt = f"问题：{query}"
         if context:
             user_prompt += f"\n上下文：{context}"
         
-        response = client.chat.completions.create(
-            model=AI_MODEL,
-            messages=[
+        data = {
+            'model': AI_MODEL,
+            'messages': [
                 {'role': 'system', 'content': system_prompt},
                 {'role': 'user', 'content': user_prompt}
             ],
-            max_tokens=800
-        )
+            'max_tokens': 800
+        }
         
-        advice = response.choices[0].message.content.strip()
+        response = requests.post(url, headers=headers, json=data)
+        response.raise_for_status()
+        
+        result = response.json()
+        advice = result['choices'][0]['message']['content'].strip()
         # 移除Markdown格式符号
         advice = advice.replace('**', '').replace('*', '').replace('#', '')
         return jsonify({'advice': advice})
+    except requests.exceptions.RequestException as e:
+        return jsonify({'advice': f"AI建议生成失败：{str(e)}"})
     except Exception as e:
         return jsonify({'advice': f"AI建议生成失败：{str(e)}"})
 
@@ -456,12 +463,13 @@ def ai_chat():
         reply = f"感谢您的提问！关于「{user_message}」，我理解您的需求。建议您：\n\n1. 仔细观察动物的日常行为\n2. 保持饲养环境的清洁卫生\n3. 定期进行健康检查\n4. 如有需要，请联系专业兽医"
         return jsonify({'reply': reply})
     
-    # 调用真正的DeepSeek API
+    # 使用requests直接调用DeepSeek API
     try:
-        client = OpenAI(
-            api_key=AI_API_KEY,
-            base_url=AI_API_URL
-        )
+        url = f"{AI_API_URL}/chat/completions"
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {AI_API_KEY}'
+        }
         
         # 构建系统提示词
         system_prompt = "你是慧牧云眸AI助手，一个专业的畜禽健康管理专家。请用中文回答，提供专业、准确、实用的养殖建议和健康管理指导。输出时不要使用Markdown格式，只返回纯文本内容。"
@@ -474,17 +482,23 @@ def ai_chat():
                 'content': msg.get('content', '')
             })
         
-        response = client.chat.completions.create(
-            model=AI_MODEL,
-            messages=api_messages,
-            temperature=0.7,
-            max_tokens=800
-        )
+        data = {
+            'model': AI_MODEL,
+            'messages': api_messages,
+            'temperature': 0.7,
+            'max_tokens': 800
+        }
         
-        reply = response.choices[0].message.content.strip()
+        response = requests.post(url, headers=headers, json=data)
+        response.raise_for_status()
+        
+        result = response.json()
+        reply = result['choices'][0]['message']['content'].strip()
         # 移除Markdown格式符号
         reply = reply.replace('**', '').replace('*', '').replace('#', '')
         return jsonify({'reply': reply})
+    except requests.exceptions.RequestException as e:
+        return jsonify({'reply': f"AI回复失败：{str(e)}"})
     except Exception as e:
         return jsonify({'reply': f"AI回复失败：{str(e)}"})
 
