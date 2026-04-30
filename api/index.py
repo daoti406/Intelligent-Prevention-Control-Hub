@@ -3,6 +3,7 @@ import json
 import datetime
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from openai import OpenAI
 
 app = Flask(__name__)
 CORS(app)
@@ -415,9 +416,30 @@ def ai_advice():
         advice = f"针对{animal_type}的{query}问题，建议：\n\n1. 请及时观察动物的精神状态和食欲情况\n2. 检查饲养环境是否符合要求\n3. 如有异常，请及时联系兽医进行诊断\n4. 定期做好防疫和消毒工作"
         return jsonify({'advice': advice})
     
-    # 尝试调用AI（简化版）
+    # 调用真正的DeepSeek API
     try:
-        advice = f"根据您的问题「{query}」，结合「{context}」的情况，为您提供以下建议：\n\n1. 立即检查{animal_type}的健康状况，测量体温\n2. 确保饲养环境通风良好、温度适宜\n3. 提供充足的清洁饮水和营养饲料\n4. 观察动物的行为变化，如有异常及时隔离\n5. 建议咨询专业兽医进行进一步诊断"
+        client = OpenAI(
+            api_key=AI_API_KEY,
+            base_url=AI_API_URL
+        )
+        
+        system_prompt = f"你是一个专业的畜牧兽医专家，现在针对{animal_type}的养殖问题提供专业、准确、可操作的建议。如果用户提供了上下文信息，请结合上下文回答。输出时不要使用Markdown格式，只返回纯文本内容。"
+        user_prompt = f"问题：{query}"
+        if context:
+            user_prompt += f"\n上下文：{context}"
+        
+        response = client.chat.completions.create(
+            model=AI_MODEL,
+            messages=[
+                {'role': 'system', 'content': system_prompt},
+                {'role': 'user', 'content': user_prompt}
+            ],
+            max_tokens=800
+        )
+        
+        advice = response.choices[0].message.content.strip()
+        # 移除Markdown格式符号
+        advice = advice.replace('**', '').replace('*', '').replace('#', '')
         return jsonify({'advice': advice})
     except Exception as e:
         return jsonify({'advice': f"AI建议生成失败：{str(e)}"})
@@ -434,10 +456,34 @@ def ai_chat():
         reply = f"感谢您的提问！关于「{user_message}」，我理解您的需求。建议您：\n\n1. 仔细观察动物的日常行为\n2. 保持饲养环境的清洁卫生\n3. 定期进行健康检查\n4. 如有需要，请联系专业兽医"
         return jsonify({'reply': reply})
     
-    # 尝试调用AI（简化版）
+    # 调用真正的DeepSeek API
     try:
-        user_message = messages[-1]['content'] if messages else ''
-        reply = f"您好！针对您提到的「{user_message}」问题，为您提供以下建议：\n\n1. 首先确认问题的具体表现和严重程度\n2. 检查相关的饲养管理措施是否到位\n3. 参考知识库中的相关内容\n4. 必要时寻求专业技术支持"
+        client = OpenAI(
+            api_key=AI_API_KEY,
+            base_url=AI_API_URL
+        )
+        
+        # 构建系统提示词
+        system_prompt = "你是慧牧云眸AI助手，一个专业的畜禽健康管理专家。请用中文回答，提供专业、准确、实用的养殖建议和健康管理指导。输出时不要使用Markdown格式，只返回纯文本内容。"
+        
+        # 构建消息列表，添加系统提示词
+        api_messages = [{'role': 'system', 'content': system_prompt}]
+        for msg in messages:
+            api_messages.append({
+                'role': msg.get('role', 'user'),
+                'content': msg.get('content', '')
+            })
+        
+        response = client.chat.completions.create(
+            model=AI_MODEL,
+            messages=api_messages,
+            temperature=0.7,
+            max_tokens=800
+        )
+        
+        reply = response.choices[0].message.content.strip()
+        # 移除Markdown格式符号
+        reply = reply.replace('**', '').replace('*', '').replace('#', '')
         return jsonify({'reply': reply})
     except Exception as e:
         return jsonify({'reply': f"AI回复失败：{str(e)}"})
