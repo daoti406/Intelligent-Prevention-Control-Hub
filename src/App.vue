@@ -117,7 +117,7 @@ const cameras = ref([
     location: "A区1号棚",
     healthRate: "90%",
     warnings: 2,
-    gifUrl: "/src/assets/images/猪2.gif",
+    gifUrl: "/assets/images/猪2.gif",
   },
   {
     id: 2,
@@ -127,7 +127,7 @@ const cameras = ref([
     location: "A区2号棚",
     healthRate: "100%",
     warnings: 0,
-    gifUrl: "/src/assets/images/猪.gif",
+    gifUrl: "/assets/images/猪.gif",
   },
   {
     id: 3,
@@ -137,7 +137,7 @@ const cameras = ref([
     location: "B区1号棚",
     healthRate: "99%",
     warnings: 0,
-    gifUrl: "/src/assets/images/鸡.gif",
+    gifUrl: "/assets/images/鸡.gif",
   },
   {
     id: 4,
@@ -147,7 +147,7 @@ const cameras = ref([
     location: "B区2号棚",
     healthRate: "96%",
     warnings: 3,
-    gifUrl: "/src/assets/images/鸡.gif",
+    gifUrl: "/assets/images/鸡.gif",
   },
   {
     id: 5,
@@ -157,7 +157,7 @@ const cameras = ref([
     location: "C区1号棚",
     healthRate: "85%",
     warnings: 2,
-    gifUrl: "/src/assets/images/牛.gif",
+    gifUrl: "/assets/images/牛.gif",
   },
   {
     id: 6,
