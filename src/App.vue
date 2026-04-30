@@ -167,7 +167,7 @@ const cameras = ref([
     location: "C区2号棚",
     healthRate: "83.3%",
     warnings: 2,
-    gifUrl: "/src/assets/images/牛2.gif",
+    gifUrl: "/assets/images/牛2.gif",
   },
 ]);
 
