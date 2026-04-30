@@ -1,5 +1,6 @@
 {
   "buildCommand": "npm run build",
+  "outputDirectory": "dist",
   "functions": {
     "api/index.py": {
       "runtime": "@vercel/python@3.1"
@@ -11,14 +12,11 @@
       "dest": "/api/index.py"
     },
     {
+      "handle": "filesystem"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/dist/$1",
-      "fallback": true
+      "dest": "/index.html"
     }
-  ],
-  "env": {
-    "AI_API_KEY": "@ai_api_key",
-    "AI_API_URL": "https://api.deepseek.com/v1",
-    "AI_MODEL": "deepseek-chat"
-  }
+  ]
 }
