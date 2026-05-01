@@ -8,7 +8,7 @@
 - 实时预警：基于mmcow视觉监控画面的健康状态分析
 提供畜禽健康智能预警系统的API接口
 """
-
+#AI辅助生成：DeepSeek, 2026-4
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy

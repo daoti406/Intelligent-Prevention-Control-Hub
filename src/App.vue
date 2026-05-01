@@ -574,7 +574,7 @@ const fetchAIAnalysis = async () => {
     const stats = dataStats.value;
     const warnings = warningList.value.filter(w => w.status !== '已处理').slice(0, 3);
     const warningDesc = warnings.map(w => `${w.location}:${w.type}`).join('、') || '暂无待处理预警';
-    
+    //AI辅助生成：DeepSeek, 2026-4
     const prompt = `你是慧牧云眸AI助手，已接入DeepSeek大模型，结合mmcow多模态视觉监控数据进行畜禽健康分析。
 请根据以下实时监测数据（来源：mmcow视觉分析MOCK模拟），生成一份简洁的AI分析报告（200字以内）：
 - 在线监测设备（mmcow摄像头）：${stats[0]?.value || 24}路
