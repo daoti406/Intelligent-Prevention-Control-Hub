@@ -246,21 +246,21 @@
                       <el-tag 
                         v-if="camera.aiAnalysis?.healthScore >= 90" 
                         type="success" 
-                        size="mini"
+                        size="small"
                       >
                         健康
                       </el-tag>
                       <el-tag 
                         v-else-if="camera.aiAnalysis?.healthScore >= 70" 
                         type="warning" 
-                        size="mini"
+                        size="small"
                       >
                         一般
                       </el-tag>
                       <el-tag 
                         v-else 
                         type="danger" 
-                        size="mini"
+                        size="small"
                       >
                         关注
                       </el-tag>
@@ -477,8 +477,15 @@ let pollingInterval = null; // 存储定时器ID，用于在组件销毁时清�
 
 // 获取后端数据并更新界面的函数
 const fetchLatestAlert = async () => {
-  const result = await getLatestResult();
-  latestAlert.value = result;
+  try {
+    const result = await getLatestResult();
+    latestAlert.value = {
+      ...latestAlert.value,
+      ...result
+    };
+  } catch (error) {
+    console.error("获取最新告警失败:", error);
+  }
 };
 
 // 获取AI养殖建议
@@ -495,7 +502,7 @@ const fetchAIAdvice = async () => {
       adviceForm.context
     );
     console.log('AI建议响应数据:', result);
-    aiAdvice.value = result.advice;
+    aiAdvice.value = result?.advice || "暂无建议";
   } catch (error) {
     console.error('获取AI建议失败:', error);
     aiAdvice.value = '获取建议失败，请稍后重试';
@@ -679,13 +686,6 @@ onMounted(() => {
     console.log('后端服务测试结果:', result);
   });
   
-  // 自动测试 AI 建议功能
-  setTimeout(() => {
-    adviceForm.animal_type = '猪';
-    adviceForm.query = '如何预防猪瘟？';
-    fetchAIAdvice();
-  }, 2000);
-  
   // 立即获取一次，无需等待第一个2秒间隔
   fetchLatestAlert();
   // 每隔2秒轮询一次，保持界面实时性
@@ -695,6 +695,10 @@ onMounted(() => {
 onUnmounted(() => {
   envTrendChart?.dispose();
   activityChart?.dispose();
+  if (aiInterval) {
+    clearInterval(aiInterval);
+    aiInterval = null;
+  }
   // 组件销毁前清除定时器，避免内存泄漏
   if (pollingInterval) {
     clearInterval(pollingInterval);

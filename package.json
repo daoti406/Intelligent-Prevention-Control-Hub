@@ -2,7 +2,7 @@
   "name": "huimu-yunmu",
   "version": "1.0.0",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --configLoader native",
     "build": "vite build",
     "preview": "vite preview"
   },
@@ -10,8 +10,8 @@
     "axios": "^1.13.6",
     "echarts": "^5.5.0",
     "element-plus": "^2.6.0",
-    "lodash": "^4.18.0",
-    "lodash-es": "^4.18.0",
+    "lodash": "^4.17.21",
+    "lodash-es": "^4.17.21",
     "vue": "^3.4.0",
     "vue-router": "^4.6.4"
   },

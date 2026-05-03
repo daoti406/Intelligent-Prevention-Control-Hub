@@ -1,14 +1,4 @@
 import { createRouter, createWebHistory } from "vue-router";
-import Login from "../components/Login.vue";
-import Dashboard from "../components/Dashboard.vue";
-import Monitor from "../components/Monitor.vue";
-import AISentinel from "../components/AISentinel.vue";
-import Warning from "../components/Warning.vue";
-import Knowledge from "../components/Knowledge.vue";
-import RanchManagement from "../components/RanchManagement.vue";
-import Profile from "../components/Profile.vue";
-import affordableAIPanel from "../components/affordableAIPanel.vue";
-import PerformanceDashboard from "../components/PerformanceDashboard.vue";
 
 const routes = [
   {
@@ -18,61 +8,61 @@ const routes = [
   {
     path: "/login",
     name: "Login",
-    component: Login,
+    component: () => import("../components/Login.vue"),
     meta: { requiresAuth: false },
   },
   {
     path: "/dashboard",
     name: "Dashboard",
-    component: Dashboard,
+    component: () => import("../components/Dashboard.vue"),
     meta: { requiresAuth: true },
   },
   {
     path: "/monitor",
     name: "Monitor",
-    component: Monitor,
+    component: () => import("../components/Monitor.vue"),
     meta: { requiresAuth: true },
   },
   {
     path: "/ai-sentinel",
     name: "AISentinel",
-    component: AISentinel,
+    component: () => import("../components/AISentinel.vue"),
     meta: { requiresAuth: true },
   },
   {
     path: "/warning",
     name: "Warning",
-    component: Warning,
+    component: () => import("../components/Warning.vue"),
     meta: { requiresAuth: true },
   },
   {
     path: "/knowledge",
     name: "Knowledge",
-    component: Knowledge,
+    component: () => import("../components/Knowledge.vue"),
     meta: { requiresAuth: true },
   },
   {
     path: "/ranch",
     name: "RanchManagement",
-    component: RanchManagement,
+    component: () => import("../components/RanchManagement.vue"),
     meta: { requiresAuth: true },
   },
   {
     path: "/profile",
     name: "Profile",
-    component: Profile,
+    component: () => import("../components/Profile.vue"),
     meta: { requiresAuth: true },
   },
   {
     path: "/ai-panel",
     name: "AffordableAI",
-    component: affordableAIPanel,
+    component: () => import("../components/affordableAIPanel.vue"),
     meta: { requiresAuth: true },
   },
   {
     path: "/performance",
     name: "Performance",
-    component: PerformanceDashboard,
+    component: () => import("../components/PerformanceDashboard.vue"),
     meta: { requiresAuth: true },
   },
   {

@@ -957,8 +957,15 @@ def serve_vue(path):
 
 # ==================== 启动配置 ====================
 
-if __name__ == '__main__':
+def initialize_application():
     with app.app_context():
         db.create_all()
         init_db_data()
-    app.run(host='0.0.0.0', port=8081, debug=True)
+
+
+initialize_application()
+
+
+if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 8081))
+    app.run(host='0.0.0.0', port=port)

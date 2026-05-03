@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: intelligent-prevention-control-hub
+    env: python
+    rootDir: .
+    buildCommand: |
+      pip install -r huimu-backend/requirements.txt
+      if command -v npm >/dev/null 2>&1; then
+        npm ci || npm install
+        npm run build
+      else
+        echo "npm not found in build environment; using committed huimu-backend/static assets."
+      fi
+    startCommand: cd huimu-backend && gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120

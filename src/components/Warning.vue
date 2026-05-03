@@ -186,11 +186,11 @@
                   </div>
                 </div>
                 <div class="prediction-actions">
-                  <el-button size="mini" @click="viewPredictionDetail(prediction)">
+                  <el-button size="small" @click="viewPredictionDetail(prediction)">
                     <i class="fas fa-eye"></i> 详情
                   </el-button>
                   <el-button 
-                    size="mini" 
+                    size="small" 
                     type="primary" 
                     @click="acknowledgePrediction(prediction)"
                   >

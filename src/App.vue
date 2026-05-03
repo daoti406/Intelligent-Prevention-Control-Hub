@@ -32,14 +32,6 @@ import { ElMessage, ElMessageBox } from "element-plus";
 import * as echarts from "echarts";
 
 import Layout from "./Layout.vue";
-import Login from "./components/Login.vue";
-import Dashboard from "./components/Dashboard.vue";
-import Monitor from "./components/Monitor.vue";
-import AISentinel from "./components/AISentinel.vue";
-import Warning from "./components/Warning.vue";
-import Knowledge from "./components/Knowledge.vue";
-import Profile from "./components/Profile.vue";
-import RanchManagement from "./components/RanchManagement.vue";
 import { getDashboardStats, getNotifications } from "./api/dashboard";
 import { getWarnings } from "./api/warning";
 import { sendAIChat } from "./api/realtime";
