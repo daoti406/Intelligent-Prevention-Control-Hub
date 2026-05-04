@@ -1,0 +1,1 @@
+import{t as e}from"./request-Bl8PFQb8.js";async function t(t){return e({url:`/api/auth`,method:`post`,data:t})}export{t};

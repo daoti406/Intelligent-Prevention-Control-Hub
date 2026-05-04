@@ -1,0 +1,97 @@
+{
+  "predictions": [
+    {
+      "animal": "未知",
+      "confidence": 0.0,
+      "alert_level": "中",
+      "advice": "分析失败"
+    },
+    {
+      "animal": "未知",
+      "confidence": 0.0,
+      "alert_level": "中",
+      "advice": "分析失败"
+    },
+    {
+      "animal": "未知",
+      "confidence": 0.0,
+      "alert_level": "中",
+      "advice": "分析失败"
+    },
+    {
+      "animal": "未知",
+      "confidence": 0.0,
+      "alert_level": "中",
+      "advice": "分析失败"
+    },
+    {
+      "animal": "未知",
+      "confidence": 0.0,
+      "alert_level": "中",
+      "advice": "分析失败"
+    },
+    {
+      "animal": "未知",
+      "confidence": 0.0,
+      "alert_level": "中",
+      "advice": "分析失败"
+    },
+    {
+      "animal": "未知",
+      "confidence": 0.0,
+      "alert_level": "中",
+      "advice": "分析失败"
+    },
+    {
+      "animal": "未知",
+      "confidence": 0.0,
+      "alert_level": "中",
+      "advice": "分析失败"
+    },
+    {
+      "animal": "未知",
+      "confidence": 0.0,
+      "alert_level": "中",
+      "advice": "分析失败"
+    },
+    {
+      "animal": "未知",
+      "confidence": 0.0,
+      "alert_level": "中",
+      "advice": "分析失败"
+    }
+  ],
+  "annotations": [
+    {
+      "animal": "未知"
+    },
+    {
+      "animal": "未知"
+    },
+    {
+      "animal": "牛"
+    },
+    {
+      "animal": "牛"
+    },
+    {
+      "animal": "猪"
+    },
+    {
+      "animal": "猪"
+    },
+    {
+      "animal": "未知"
+    },
+    {
+      "animal": "未知"
+    },
+    {
+      "animal": "未知"
+    },
+    {
+      "animal": "鸡"
+    }
+  ],
+  "accuracy": 0.5
+}
