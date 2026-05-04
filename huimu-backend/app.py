@@ -13,32 +13,45 @@ from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+import logging
 import os
 import base64
 import json
 from dotenv import load_dotenv
 from openai import OpenAI
 
-load_dotenv()
+env_path = os.environ.get('ENV_PATH', os.path.join(os.path.dirname(__file__), '.env'))
+load_dotenv(env_path)
 
-app = Flask(__name__, static_folder='static', static_url_path='')
+basedir = os.path.abspath(os.path.dirname(__file__))
+app = Flask(__name__, static_folder=os.path.join(basedir, 'static'), static_url_path='/__static__')
 CORS(app)
 
+# 开发环境调试信息（生产环境禁用）
+if app.debug and os.environ.get('ENV') != 'production':
+    logging.debug('='*60)
+    logging.debug('环境变量调试信息:')
+    logging.debug(f'  AI_MODE: {os.environ.get("AI_MODE")}')
+    logging.debug(f'  AI_API_KEY: {"已配置" if os.environ.get("AI_API_KEY") else "未设置"}')
+    logging.debug(f'  .env 文件路径: {env_path}')
+    logging.debug(f'  .env 文件存在: {os.path.exists(env_path)}')
+    logging.debug('='*60)
+
 # 数据库配置
-basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'records.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'huimuyunmu-secret-key-2024'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'huimuyunmu-secret-key-2024')
 
 # AI大模型配置（国内大模型，兼容OpenAI格式）
 # 默认使用 DeepSeek（国内领先的开源大模型）
 # 可通过环境变量切换为阿里千问、SiliconFlow等其他国内大模型
-AI_API_KEY = os.environ.get('AI_API_KEY', 'your_deepseek_api_key_here')
+AI_MODE = (os.environ.get('AI_MODE') or 'mock').strip().lower()
+AI_API_KEY = os.environ.get('AI_API_KEY', '').strip()
 AI_API_URL = os.environ.get('AI_API_URL', 'https://api.deepseek.com/v1')
 AI_MODEL = os.environ.get('AI_MODEL', 'deepseek-chat')
 # 备用国内大模型配置（注释中为备用方案）
-# 阿里千问: AI_API_URL=https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions, AI_MODEL=qwen-turbo
-# SiliconFlow: AI_API_URL=https://api.siliconflow.cn/v1/chat/completions, AI_MODEL=Qwen/Qwen2.5-7B-Instruct
+# 阿里千问: AI_API_URL=https://dashscope.aliyuncs.com/compatible-mode/v1, AI_MODEL=qwen-turbo
+# SiliconFlow: AI_API_URL=https://api.siliconflow.cn/v1, AI_MODEL=Qwen/Qwen2.5-7B-Instruct
 
 db = SQLAlchemy(app)
 
@@ -127,15 +140,44 @@ def analyze_image(image_path=None, image_data=None):
     :param image_data: 图像数据（base64编码）
     :return: 分析结果
     """
-    # 验证 API 密钥
-    if not AI_API_KEY:
-        return {
-            "animal": "猪",
-            "confidence": 0.87,
-            "alert_level": "中",
-            "advice": "建议隔离观察，检查体温是否正常"
-        }
-    
+    if AI_MODE == 'mock':
+        import random
+
+        mock_results = [
+            {
+                "animal": "猪",
+                "confidence": random.uniform(0.85, 0.97),
+                "alert_level": "低",
+                "advice": "健康状况良好，继续保持当前管理水平。【模拟模式提示：当前未接入真实AI Key，回复结果仅供参考】"
+            },
+            {
+                "animal": "牛",
+                "confidence": random.uniform(0.88, 0.96),
+                "alert_level": "低",
+                "advice": "健康状态良好，注意定期检查体温。【模拟模式提示：当前未接入真实AI Key，回复结果仅供参考】"
+            },
+            {
+                "animal": "鸡",
+                "confidence": random.uniform(0.82, 0.94),
+                "alert_level": "低",
+                "advice": "生长状态良好，注意通风和保暖。【模拟模式提示：当前未接入真实AI Key，回复结果仅供参考】"
+            },
+            {
+                "animal": "猪",
+                "confidence": random.uniform(0.75, 0.88),
+                "alert_level": "中",
+                "advice": "建议增加观察频率，注意采食情况。【模拟模式提示：当前未接入真实AI Key，回复结果仅供参考】"
+            },
+            {
+                "animal": "牛",
+                "confidence": random.uniform(0.78, 0.91),
+                "alert_level": "中",
+                "advice": "建议检查饲料营养，观察反刍情况。【模拟模式提示：当前未接入真实AI Key，回复结果仅供参考】"
+            }
+        ]
+
+        return random.choice(mock_results)
+
     # 验证图像数据
     if image_path and os.path.exists(image_path):
         try:
@@ -165,41 +207,54 @@ def analyze_image(image_path=None, image_data=None):
             api_key=AI_API_KEY,
             base_url=AI_API_URL
         )
+
+        # 构建提示词和消息
+        prompt_text = '你是一个专业的畜禽健康分析专家。请分析以下畜禽健康状态，并返回JSON格式：{"animal": "动物类型", "confidence": 置信度(0-1), "alert_level": "预警等级(低/中/高)", "advice": "处理建议"}。请直接返回JSON，不要有其他内容。'
+
+        # 构建消息内容 - 支持文本和图像
+        content = [{"type": "text", "text": prompt_text}]
         
-        # 准备请求数据
+        # 如果有图像数据，添加到消息中
+        if image_data:
+            # 处理 base64 数据，去掉可能存在的前缀
+            if image_data.startswith('data:image'):
+                content.append({
+                    "type": "image_url",
+                    "image_url": {"url": image_data}
+                })
+            else:
+                # 默认格式为 jpeg
+                content.append({
+                    "type": "image_url",
+                    "image_url": {"url": f"data:image/jpeg;base64,{image_data}"}
+                })
+
         messages = [
             {
-                'role': 'user',
-                'content': [
-                    {
-                        'type': 'text',
-                        'text': '请分析这张图片，识别出里面的动物类型，并评估其健康状态。返回格式：{"animal": "动物类型", "confidence": 置信度, "alert_level": "预警等级", "advice": "处理建议"}'
-                    }
-                ]
+                "role": "user",
+                "content": content
             }
         ]
-        
-        # 如果有图像数据，添加到请求中
-        if image_data:
-            messages[0]['content'].append({
-                'type': 'image_url',
-                'image_url': {
-                    'url': f'data:image/jpeg;base64,{image_data}'
-                }
-            })
-        
+
         # 发送API请求
         response = client.chat.completions.create(
             model=AI_MODEL,
             messages=messages,
             max_tokens=500
         )
-        
+
         # 提取分析结果
         content = response.choices[0].message.content
-        
+
         # 尝试解析JSON格式的结果
         try:
+            # 清理可能存在的 markdown 代码块
+            if '```' in content:
+                content = content.split('```')[1]
+                if content.startswith('json'):
+                    content = content[4:]
+                content = content.strip()
+
             analysis_result = json.loads(content)
             # 验证返回结果格式
             if not all(key in analysis_result for key in ['animal', 'confidence', 'alert_level', 'advice']):
@@ -219,9 +274,20 @@ def analyze_image(image_path=None, image_data=None):
                 "alert_level": "中",
                 "advice": "无法分析图像，请检查图像质量"
             }
-        
+
     except Exception as e:
         print(f"AI分析失败: {str(e)}")
+
+        # 如果是余额不足错误，返回友好提示
+        if '402' in str(e) or 'Insufficient Balance' in str(e):
+            return {
+                "animal": "猪",
+                "confidence": 0.87,
+                "alert_level": "中",
+                "advice": "API账户余额不足。请充值您的DeepSeek账户，或者设置 AI_MODE=mock 使用模拟模式进行开发测试。"
+            }
+
+        # 其他错误返回默认值
         return {
             "animal": "猪",
             "confidence": 0.87,
@@ -328,6 +394,24 @@ def init_db_data():
 @app.route('/')
 def index():
     return send_from_directory(app.static_folder, 'index.html')
+
+@app.route('/api/system-info', methods=['GET'])
+def get_system_info():
+    """获取系统信息，包括AI模式状态"""
+    print('[/api/system-info] 被调用')
+    try:
+        print(f'  AI_MODE: {AI_MODE}')
+        print(f'  AI_API_KEY: {bool(AI_API_KEY)}')
+        result = {
+            'ai_mode': AI_MODE,
+            'ai_model': AI_MODEL,
+            'api_key_configured': bool(AI_API_KEY)
+        }
+        print(f'  返回: {result}')
+        return jsonify(result)
+    except Exception as e:
+        print(f'  错误: {str(e)}')
+        return jsonify({'error': '系统配置读取失败'}), 500
 
 
 # --- 认证相关 ---
@@ -869,21 +953,73 @@ def get_ai_advice():
         query = data.get('query', '')
         animal_type = data.get('animal_type', '猪')
         context = data.get('context', '')
-        
+
+        # 模拟模式
+        if AI_MODE == 'mock':
+            # 根据动物类型和问题生成模拟建议
+            advice_dict = {
+                '猪': {
+                    '养殖': '关于猪的养殖建议：1. 保持适宜的温度（18-22°C）2. 控制湿度在60-70% 3. 定期清洁消毒 4. 注意观察猪的健康状态和食欲',
+                    '疫病': '猪疫病防控建议：1. 定期疫苗接种 2. 及时隔离病猪 3. 加强消毒管理 4. 保证饲料和饮水卫生',
+                    '温度': '猪舍温度建议：育肥猪18-22°C，仔猪28-32°C，母猪20-24°C',
+                    '湿度': '猪舍湿度建议：保持在60-70%，过高易引发呼吸道疾病',
+                    '饲料': '猪饲料建议：提供全价饲料，保证蛋白质、维生素和矿物质均衡',
+                    '其他': '关于猪的养殖，建议您：1. 定期巡栏 2. 监测生长指标 3. 做好防疫记录 4. 保持环境整洁'
+                },
+                '牛': {
+                    '养殖': '关于牛的养殖建议：1. 提供充足优质饲料 2. 保证清洁饮水 3. 定期驱虫 4. 注意牛舍通风和保暖',
+                    '疫病': '牛疫病防控建议：1. 按时接种疫苗 2. 定期健康检查 3. 保持牛舍干燥 4. 及时治疗病牛',
+                    '温度': '牛舍温度建议：成年牛10-20°C，犊牛15-25°C',
+                    '湿度': '牛舍湿度建议：控制在50-60%',
+                    '饲料': '牛饲料建议：优质干草+精料，注意粗精搭配',
+                    '其他': '关于牛的养殖，建议您：1. 定期检查蹄部健康 2. 监测产奶量 3. 做好繁育记录'
+                },
+                '鸡': {
+                    '养殖': '关于鸡的养殖建议：1. 控制育雏温度（33-35°C）2. 合理光照管理 3. 保持干燥通风 4. 定期补充维生素',
+                    '疫病': '鸡疫病防控建议：1. 严格执行免疫程序 2. 及时隔离病鸡 3. 加强消毒 4. 全进全出制',
+                    '温度': '鸡舍温度建议：育雏期33-35°C，育成期20-25°C，成年鸡18-25°C',
+                    '湿度': '鸡舍湿度建议：控制在50-60%',
+                    '饲料': '鸡饲料建议：根据生长阶段调整饲料配比，保证营养均衡',
+                    '其他': '关于鸡的养殖，建议您：1. 定期称重 2. 监测产蛋率 3. 做好防疫记录'
+                }
+            }
+
+            # 根据查询内容匹配建议类型
+            query_lower = query.lower()
+            if '疫病' in query_lower or '疾病' in query_lower or '防疫' in query_lower:
+                advice_type = '疫病'
+            elif '温度' in query_lower:
+                advice_type = '温度'
+            elif '湿度' in query_lower:
+                advice_type = '湿度'
+            elif '饲料' in query_lower or '喂' in query_lower:
+                advice_type = '饲料'
+            else:
+                advice_type = '养殖'
+
+            advice = advice_dict.get(animal_type, {}).get(advice_type, advice_dict['猪']['其他'])
+
+            # 如果有上下文，可以添加到建议中
+            if context:
+                advice += f"\n\n参考上下文：{context}"
+
+            return jsonify({'advice': advice})
+
+        # 真实 API 模式
         if not AI_API_KEY:
-            return jsonify({'advice': '请在环境变量中配置 AI_API_KEY 才能使用真实的AI功能。目前返回的是模拟数据。'})
-            
+            return jsonify({'advice': '请在后端配置AI大模型的API KEY (AI_API_KEY)，或者设置 AI_MODE=mock 使用模拟模式。当前为未配置状态。'})
+
         # 初始化 OpenAI 客户端
         client = OpenAI(
             api_key=AI_API_KEY,
             base_url=AI_API_URL
         )
-        
+
         system_prompt = f"你是一个专业的畜牧兽医专家，现在针对{animal_type}的养殖问题提供专业、准确、可操作的建议。如果用户提供了上下文信息，请结合上下文回答。"
         user_prompt = f"问题：{query}\n"
         if context:
             user_prompt += f"现场上下文数据：{context}\n"
-            
+
         # 发送API请求
         response = client.chat.completions.create(
             model=AI_MODEL,
@@ -894,14 +1030,19 @@ def get_ai_advice():
             temperature=0.7,
             max_tokens=800
         )
-        
+
         advice = response.choices[0].message.content
         # 清理Markdown格式符号
         advice = advice.replace('**', '')
         return jsonify({'advice': advice})
-            
+
     except Exception as e:
         print(f"AI建议生成失败: {str(e)}")
+
+        # 如果是余额不足错误，提供友好提示
+        if '402' in str(e) or 'Insufficient Balance' in str(e):
+            return jsonify({'advice': 'API账户余额不足。请充值您的DeepSeek账户，或者设置 AI_MODE=mock 使用模拟模式进行开发测试。'})
+
         return jsonify({'advice': f'抱歉，生成建议时出现错误：{str(e)}'})
 
 @app.route('/api/ai/chat', methods=['POST'])
@@ -910,27 +1051,50 @@ def ai_chat():
     try:
         data = request.get_json() or {}
         messages = data.get('messages', [])
-        
+
         if not messages:
             return jsonify({'reply': '请提供对话内容'})
-            
+
+        # 模拟模式
+        if AI_MODE == 'mock':
+            user_message = messages[-1].get('content', '').lower()
+
+            # 简单的关键词匹配
+            if '你好' in user_message or 'hi' in user_message:
+                reply = "你好！我是慧牧AI助手，有什么可以帮您的？\n\n【模拟模式提示：当前未接入真实AI Key，回复结果仅供参考】"
+            elif '猪' in user_message:
+                reply = "关于猪的养殖，我建议您注意以下几点：1. 保持适宜的温度（18-22°C）2. 控制好湿度（60-70%）3. 定期清洁消毒 4. 注意观察猪的健康状态。\n\n【模拟模式提示：当前未接入真实AI Key，回复结果仅供参考】"
+            elif '牛' in user_message:
+                reply = "牛的养殖要点：1. 提供充足的优质饲料 2. 保证清洁饮水 3. 定期驱虫和疫苗接种 4. 注意牛舍通风。\n\n【模拟模式提示：当前未接入真实AI Key，回复结果仅供参考】"
+            elif '鸡' in user_message:
+                reply = "鸡的养殖建议：1. 控制好育雏温度（33-35°C）2. 合理的光照管理 3. 定期补充维生素 4. 做好疫病预防。\n\n【模拟模式提示：当前未接入真实AI Key，回复结果仅供参考】"
+            elif '疫病' in user_message or '疾病' in user_message:
+                reply = "疫病防控要点：1. 定期消毒 2. 及时隔离病禽 3. 按时接种疫苗 4. 保持环境卫生 5. 加强营养管理。\n\n【模拟模式提示：当前未接入真实AI Key，回复结果仅供参考】"
+            elif '温度' in user_message or '湿度' in user_message:
+                reply = "环境控制建议：猪舍温度保持在18-22°C，湿度60-70%；牛舍温度10-20°C，湿度50-60%；鸡舍育雏期33-35°C，湿度50-60%。\n\n【模拟模式提示：当前未接入真实AI Key，回复结果仅供参考】"
+            else:
+                reply = "我理解您的问题。作为慧牧AI助手，我可以帮助您解决畜禽养殖、疫病防控、环境调节等方面的问题。请问您具体想了解什么？\n\n【模拟模式提示：当前未接入真实AI Key，回复结果仅供参考】"
+
+            return jsonify({'reply': reply})
+
+        # 真实 API 模式
         if not AI_API_KEY:
-            return jsonify({'reply': '请在后端配置AI大模型的API KEY (AI_API_KEY)。当前为未配置状态。'})
-            
+            return jsonify({'reply': '请在后端配置AI大模型的API KEY (AI_API_KEY)，或者设置 AI_MODE=mock 使用模拟模式。当前为未配置状态。'})
+
         # 初始化 OpenAI 客户端
         client = OpenAI(
             api_key=AI_API_KEY,
             base_url=AI_API_URL
         )
-        
+
         # 构建给大模型的messages，注入系统提示词
         system_msg = {
-            "role": "system", 
+            "role": "system",
             "content": "你叫'慧牧AI助手'，是慧牧云眸畜禽健康智能预警系统的AI助手，已接入DeepSeek大模型。你精通畜禽养殖、疫病防控、环境调节，并能结合mmcow视觉监控数据进行智能分析。你的回答应该专业、简洁，不要长篇大论，适合在聊天窗口中阅读。"
         }
-        
+
         api_messages = [system_msg] + messages
-        
+
         # 发送API请求
         response = client.chat.completions.create(
             model=AI_MODEL,
@@ -938,21 +1102,36 @@ def ai_chat():
             temperature=0.7,
             max_tokens=800
         )
-        
+
         reply = response.choices[0].message.content
         # 清理Markdown格式符号
         reply = reply.replace('**', '')
         return jsonify({'reply': reply})
-            
+
     except Exception as e:
         print(f"AI对话请求失败: {str(e)}")
+
+        # 如果是余额不足错误，提供友好提示
+        if '402' in str(e) or 'Insufficient Balance' in str(e):
+            return jsonify({'reply': 'API账户余额不足。请充值您的DeepSeek账户，或者设置 AI_MODE=mock 使用模拟模式进行开发测试。'})
+
         return jsonify({'reply': f'网络或API请求异常：{str(e)}'})
+
+@app.route('/assets/<path:filename>')
+def serve_assets(filename):
+    return send_from_directory(os.path.join(app.static_folder, 'assets'), filename)
 
 @app.route('/<path:path>')
 def serve_vue(path):
+    if path.startswith('api/'):
+        return jsonify({'error': 'API endpoint not found'}), 404
     full_path = os.path.join(app.static_folder, path)
-    if os.path.exists(full_path):
+    if os.path.exists(full_path) and os.path.isfile(full_path):
         return send_from_directory(app.static_folder, path)
+    return send_from_directory(app.static_folder, 'index.html')
+
+@app.route('/')
+def serve_index():
     return send_from_directory(app.static_folder, 'index.html')
 
 # ==================== 启动配置 ====================

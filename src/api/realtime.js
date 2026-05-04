@@ -45,7 +45,7 @@ export function getLatestResult() {
   return request({
     url: "/api/latest",
     method: "get",
-    timeout: 5000,
+    timeout: 15000,
   })
     .then((res) => normalizeLatestResult(res))
     .catch((error) => {
@@ -101,7 +101,7 @@ export function sendAIChat(messages) {
   return request({
     url: "/api/ai/chat",
     method: "post",
-    timeout: 30000,
+    timeout: 15000,
     data: { messages },
   })
     .then((res) => {
